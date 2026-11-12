@@ -12,6 +12,7 @@
 **Phụ thuộc:** XcodeGen, Xcode, SPM `KeyboardShortcuts` ghim `2.4.0`.
 
 **Lưu ý/bẫy**
+- Luôn build với `-derivedDataPath build` (rule trong `CLAUDE.md` §4); không dùng DerivedData mặc định.
 - Thêm/xoá file nguồn phải chạy lại `xcodegen generate`.
 - macOS 26.0 trở lên, bundle id `com.linh.tscreen`, ký ad-hoc; hardened runtime chỉ bật ở Release.
 - Trong `project.yml`, khối `configs:` phải nằm sau các khoá của `base`, chen giữa sẽ lỗi parse.

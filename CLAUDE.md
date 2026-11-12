@@ -21,3 +21,9 @@
   `graphify/index.md` là chỉ mục gốc (MOC) trỏ tới mọi note.
   Nội dung note: mục đích, file chính (đường dẫn), luồng xử lý, phụ thuộc, lưu ý/bẫy.
 - **Khi sửa logic** làm note không còn đúng: cập nhật note (và `index.md` nếu thêm/xoá note) trong cùng commit.
+
+## 4. Build
+
+- Mọi lệnh `xcodebuild` (build, test) **phải** thêm `-derivedDataPath build` để sản phẩm nằm trong
+  `build/Build/Products/Debug` hoặc `build/Build/Products/Release` tuỳ `-configuration`.
+- Không build ra chỗ khác (kể cả DerivedData mặc định `~/Library/Developer/Xcode/DerivedData`) để tránh sinh nhiều bản build thừa.

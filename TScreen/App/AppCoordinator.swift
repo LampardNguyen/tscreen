@@ -52,24 +52,39 @@ final class AppCoordinator {
                     model.status = .failed("Không tìm thấy chữ trong vùng đã chụp.")
                     return
                 }
-                let settings = AppSettings.current
                 let source = Self.detectLanguage(blocks.map(\.text).joined(separator: "\n"))
-                switch settings.engine {
-                case "claude": model.status = .working("Đang gửi chữ tới Claude để dịch…")
-                case "openai": model.status = .working("Đang gửi chữ tới OpenAI để dịch…")
-                default: model.status = .working("Đang dịch trên máy…")
-                }
-                let translator = makeTranslator(settings)
-                let texts = try await translator.translate(blocks.map(\.text), from: source, to: settings.targetLanguage)
 
-                lap("Dịch (\(settings.engine))")
-                let scale = CGFloat(image.width) / region.width
-                model.translated = ImageComposer.compose(image, blocks: blocks, translations: texts,
-                                                         scale: scale, fontName: settings.fontName)
-                lap("Vẽ")
-                model.translatedText = texts.joined(separator: "\n")
-                model.status = .done
-                NSLog("TScreen timings: %@", model.timings.joined(separator: " · "))
+                // Bước dịch + vẽ tách riêng để nút "Thử lại" gọi lại API mà không cần chụp/OCR lại.
+                @MainActor func translateAndCompose() async {
+                    let settings = AppSettings.current
+                    model.retry = nil
+                    mark = clock.now
+                    switch settings.engine {
+                    case "claude": model.status = .working("Đang gửi chữ tới Claude để dịch…")
+                    case "openai": model.status = .working("Đang gửi chữ tới OpenAI để dịch…")
+                    default: model.status = .working("Đang dịch trên máy…")
+                    }
+                    let texts: [String]
+                    do {
+                        texts = try await makeTranslator(settings)
+                            .translate(blocks.map(\.text), from: source, to: settings.targetLanguage)
+                    } catch {
+                        model.status = .failed(error.localizedDescription)
+                        if ["openai", "claude"].contains(settings.engine) {
+                            model.retry = { Task { await translateAndCompose() } }
+                        }
+                        return
+                    }
+                    lap("Dịch (\(settings.engine))")
+                    let scale = CGFloat(image.width) / region.width
+                    model.translated = ImageComposer.compose(image, blocks: blocks, translations: texts,
+                                                             scale: scale, fontName: settings.fontName)
+                    lap("Vẽ")
+                    model.translatedText = texts.joined(separator: "\n")
+                    model.status = .done
+                    NSLog("TScreen timings: %@", model.timings.joined(separator: " · "))
+                }
+                await translateAndCompose()
             } catch {
                 model.status = .failed(error.localizedDescription)
                 if model.original == nil { viewer.show(model, near: region) }

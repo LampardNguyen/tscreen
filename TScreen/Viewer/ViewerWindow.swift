@@ -14,6 +14,8 @@ final class ViewerModel: ObservableObject {
     @Published var pinned = true
     @Published var timings: [String] = []
     @Published var showTimings = false
+    /// Có giá trị khi bước dịch qua API lỗi: viewer hiện nút "Thử lại" gọi lại API.
+    @Published var retry: (() -> Void)?
 
     var displayed: CGImage? { showOriginal ? original : (translated ?? original) }
 }
@@ -222,7 +224,12 @@ struct ViewerImageView: View {
         case .working(let message):
             HStack(spacing: 6) { ProgressView().controlSize(.small); Text(message) }.modifier(Badge())
         case .failed(let message):
-            Label(message, systemImage: "exclamationmark.triangle.fill").textSelection(.enabled).modifier(Badge())
+            HStack(spacing: 8) {
+                Label(message, systemImage: "exclamationmark.triangle.fill").textSelection(.enabled)
+                if let retry = model.retry {
+                    Button("Thử lại", action: retry)
+                }
+            }.modifier(Badge())
         case .done:
             if model.showTimings {
                 Text(model.timings.joined(separator: " · ")).monospacedDigit().modifier(Badge())

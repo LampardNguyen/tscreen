@@ -15,6 +15,7 @@
 **Lưu ý/bẫy**
 - Mỗi lần chạy tạo `ViewerModel` và `ViewerWindowController` riêng; viewer cũ không bị đóng nên có thể lọt vào ảnh chụp mới.
 - `lap` là hàm cục bộ phải đánh dấu `@MainActor` vì sửa `model.timings`.
+- Bước dịch + vẽ nằm trong hàm cục bộ `translateAndCompose()`. Nếu engine API (`openai`, `claude`) lỗi khi gọi API, nó gán `model.retry` → badge lỗi trong viewer có nút "Thử lại" gọi lại hàm này (dùng lại `blocks` đã OCR, đọc lại `AppSettings`).
 - Lỗi ở bất kỳ bước nào → `model.status = .failed(...)`; nếu chưa có ảnh gốc thì vẫn mở viewer để báo lỗi.
 
 ## Liên quan

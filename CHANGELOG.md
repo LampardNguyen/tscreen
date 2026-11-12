@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## 2026-11-12
 
+- Thêm rule build vào `CLAUDE.md`: luôn dùng `-derivedDataPath build`, sản phẩm nằm trong `build/Build/Products/{Debug,Release}`.
+- Khi dịch qua API (OpenAI, Claude) bị lỗi (lỗi API hoặc mạng), viewer hiện nút "Thử lại" để gọi lại API mà không cần chụp/OCR lại.
 - Xoá nút phóng to / thu nhỏ khỏi thanh công cụ viewer (phím ⌘+ / ⌘− vẫn còn).
 - Vẽ bốn dấu góc chữ L ở bốn góc viewer để biết có thể kéo đổi kích thước.
 - Kéo ở bốn góc viewer để đổi kích thước, luôn giữ tỉ lệ ngang dọc; không resize theo một chiều.

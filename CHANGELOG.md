@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-12 — Thêm CLAUDE.md và bản đồ tri thức graphify
+
+- Thêm `CLAUDE.md` với rule làm việc cho project.
+- Thêm `graphify/` gồm `index.md` và 8 note cho các chức năng hiện có.
+
 ## [Unreleased]
 
 ## [0.1.0]

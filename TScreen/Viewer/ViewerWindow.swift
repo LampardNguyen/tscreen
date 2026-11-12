@@ -98,6 +98,32 @@ final class ViewerWindowController {
         toolbar.setFrameOrigin(origin)
     }
 
+    /// Kéo ở một trong bốn góc để đổi kích thước, luôn giữ tỉ lệ; góc đối diện đứng yên.
+    /// Trả về false nếu chuột không nằm ở góc.
+    func resizeFromCorner() -> Bool {
+        guard let window, let model else { return false }
+        let frame = window.frame, point = NSEvent.mouseLocation, grip: CGFloat = 16
+        let left = point.x - frame.minX < grip, right = frame.maxX - point.x < grip
+        let bottom = point.y - frame.minY < grip, top = frame.maxY - point.y < grip
+        guard left || right, bottom || top else { return false }
+
+        let fixed = CGPoint(x: left ? frame.maxX : frame.minX, y: bottom ? frame.maxY : frame.minY)
+        func distance(_ p: CGPoint) -> CGSize {
+            CGSize(width: left ? fixed.x - p.x : p.x - fixed.x, height: bottom ? fixed.y - p.y : p.y - fixed.y)
+        }
+        let start = distance(point), startZoom = model.zoom
+        while let event = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp]), event.type != .leftMouseUp {
+            let now = distance(NSEvent.mouseLocation)
+            let zoom = min(4, max(0.25, startZoom * max(now.width / start.width, now.height / start.height)))
+            let size = CGSize(width: baseSize.width * zoom, height: baseSize.height * zoom)
+            window.setFrame(CGRect(x: left ? fixed.x - size.width : fixed.x, y: bottom ? fixed.y - size.height : fixed.y,
+                                   width: size.width, height: size.height), display: true)
+            model.zoom = zoom
+            layout()
+        }
+        return true
+    }
+
     // MARK: Hành động
 
     func toggleOriginal() {
@@ -163,8 +189,10 @@ final class ViewerWindow: NSWindow {
 }
 
 /// SwiftUI nuốt sự kiện chuột nên isMovableByWindowBackground không có tác dụng; tự kéo cửa sổ.
+/// Bấm ở góc thì đổi kích thước thay vì kéo.
 private final class DraggableHostingView<Content: View>: NSHostingView<Content> {
     override func mouseDown(with event: NSEvent) {
+        if (window as? ViewerWindow)?.controller?.resizeFromCorner() == true { return }
         window?.performDrag(with: event)
     }
 }
@@ -182,6 +210,11 @@ struct ViewerImageView: View {
             statusBadge
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay {
+            CornerMarks().stroke(.white, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                .shadow(color: .black, radius: 1.5)
+                .allowsHitTesting(false)
+        }
     }
 
     @ViewBuilder private var statusBadge: some View {
@@ -206,6 +239,22 @@ struct ViewerImageView: View {
     }
 }
 
+/// Bốn dấu góc chữ L báo hiệu có thể kéo góc để đổi kích thước.
+private struct CornerMarks: Shape {
+    func path(in rect: CGRect) -> Path {
+        let inset: CGFloat = 4, length: CGFloat = 11
+        var path = Path()
+        for (x, dx) in [(rect.minX + inset, length), (rect.maxX - inset, -length)] {
+            for (y, dy) in [(rect.minY + inset, length), (rect.maxY - inset, -length)] {
+                path.move(to: CGPoint(x: x + dx, y: y))
+                path.addLine(to: CGPoint(x: x, y: y))
+                path.addLine(to: CGPoint(x: x, y: y + dy))
+            }
+        }
+        return path
+    }
+}
+
 struct ViewerToolbar: View {
     @ObservedObject var model: ViewerModel
     let controller: ViewerWindowController
@@ -215,8 +264,6 @@ struct ViewerToolbar: View {
             button(model.showOriginal ? "Xem bản dịch (Space)" : "Xem ảnh gốc (Space)",
                    model.showOriginal ? "character.bubble" : "photo") { controller.toggleOriginal() }
                 .disabled(model.translated == nil)
-            button("Thu nhỏ (⌘−)", "minus.magnifyingglass") { controller.zoom(by: -0.25) }
-            button("Phóng to (⌘+)", "plus.magnifyingglass") { controller.zoom(by: 0.25) }
             Divider().frame(height: 18)
             button("Sao chép ảnh (⌘C)", "doc.on.doc") { controller.copyImage() }
             button("Sao chép chữ dịch (⇧⌘C)", "text.quote") { controller.copyText() }

@@ -7,8 +7,11 @@
 
 ## 2. Changelog
 
-**Mỗi task đều ghi vào `CHANGELOG.md`** (gốc repo, tạo nếu chưa có): thêm mục mới lên đầu file
-dạng `## YYYY-MM-DD — <tên task>` + gạch đầu dòng thay đổi chính, commit cùng thay đổi.
+**Mỗi task đều ghi vào `CHANGELOG.md`** (gốc repo, tạo nếu chưa có), commit cùng thay đổi:
+
+- Mỗi ngày chỉ có một mục `## YYYY-MM-DD`, mục mới nhất nằm trên đầu file.
+- Trước khi ghi, kiểm tra đã có mục của ngày hôm nay chưa: có rồi thì chỉ thêm gạch đầu dòng mới
+  vào mục đó, không tạo thêm tiêu đề cùng ngày; chưa có thì mới tạo mục mới.
 
 ## 3. Bản đồ tri thức `graphify/`
 

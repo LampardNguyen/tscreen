@@ -7,7 +7,6 @@ import NaturalLanguage
 final class AppCoordinator {
     static let shared = AppCoordinator()
     private var isSelecting = false
-    private let viewer = ViewerWindowController()
     private var settingsWindow: NSWindow?
 
     func showSettings() {
@@ -26,12 +25,12 @@ final class AppCoordinator {
     func run() {
         guard !isSelecting else { return }
         isSelecting = true
-        viewer.close() // đóng viewer cũ để không che vùng sắp chụp
         Task {
             let selected = await RegionSelector().select()
             isSelecting = false
             guard let region = selected else { return }
             let model = ViewerModel()
+            let viewer = ViewerWindowController()
             // Đo thời gian từng bước để biết bước nào chậm.
             let clock = ContinuousClock()
             var mark = clock.now

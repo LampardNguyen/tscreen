@@ -21,6 +21,10 @@ final class ViewerModel: ObservableObject {
 /// Cửa sổ ảnh không viền, trong suốt + thanh công cụ nổi riêng bên dưới.
 @MainActor
 final class ViewerWindowController {
+    /// Các viewer đang mở; mỗi lần chụp tạo một viewer mới.
+    private static var open: [ViewerWindowController] = []
+    static func closeAll() { open.forEach { $0.close() } }
+
     private var window: ViewerWindow?
     private var toolbar: NSPanel?
     private var model: ViewerModel?
@@ -29,6 +33,7 @@ final class ViewerWindowController {
 
     func show(_ model: ViewerModel, near region: CGRect) {
         close()
+        Self.open.append(self)
         self.model = model
         baseSize = model.original == nil ? CGSize(width: 420, height: 90) : region.size
 
@@ -60,6 +65,7 @@ final class ViewerWindowController {
     }
 
     func close() {
+        Self.open.removeAll { $0 === self }
         cancellables = []
         toolbar?.close()
         window?.close()
@@ -219,7 +225,9 @@ struct ViewerToolbar: View {
             button(model.pinned ? "Bỏ ghim" : "Ghim trên cùng", model.pinned ? "pin.fill" : "pin") { model.pinned.toggle() }
             button("Thời gian xử lý từng bước", "stopwatch") { model.showTimings.toggle() }
             Divider().frame(height: 18)
-            button("Đóng (Esc)", "xmark") { controller.close() }.foregroundStyle(.red)
+            button("Đóng (Esc) · ⌥-bấm: đóng tất cả", "xmark") {
+                NSEvent.modifierFlags.contains(.option) ? ViewerWindowController.closeAll() : controller.close()
+            }.foregroundStyle(.red)
         }
         .font(.system(size: 17))
         .padding(.horizontal, 18)

@@ -49,7 +49,7 @@ struct SettingsView: View {
     private var provider: String {
         switch engine {
         case "claude": "Anthropic"
-        case "custom": URL(string: customURL)?.host ?? "API custom"
+        case "custom": URL(string: customURL.trimmingCharacters(in: .whitespaces))?.host ?? "API custom"
         default: "OpenAI"
         }
     }
@@ -82,7 +82,14 @@ struct SettingsView: View {
                     TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $openAIReasoningEffort)
                 }
                 if engine == "custom" {
-                    TextField("Base URL (…/v1)", text: $customURL)
+                    TextField(text: $customURL) {
+                        HStack(spacing: 4) {
+                            Text("Base URL")
+                            Image(systemName: "questionmark.circle")
+                                .foregroundStyle(.secondary)
+                                .help("Base URL của API tương thích OpenAI, kết thúc bằng /v1. App tự thêm /chat/completions.\nVí dụ: https://sgp-linkto.betrend.com/openai-custom/v1")
+                        }
+                    }
                     SecureField("API key", text: $customKey)
                         .onChange(of: customKey) { _, value in Keychain.set("customAPIKey", value) }
                     TextField("Model", text: $customModel)

@@ -6,7 +6,7 @@
 
 **Luồng xử lý**
 1. `xcodegen generate` sinh `.xcodeproj` (không commit) từ `project.yml`.
-2. `xcodebuild -scheme TScreen -destination 'platform=macOS' -derivedDataPath build test` — 9 unit test (joinLines, màu nền, màu chữ, co chữ, parse Claude/OpenAI, lỗi API, tích hợp OCR + vẽ).
+2. `xcodebuild -scheme TScreen -destination 'platform=macOS' -derivedDataPath build test` — 10 unit test (joinLines, màu nền, màu chữ, co chữ, parse Claude/OpenAI, cấu hình engine Custom, lỗi API, tích hợp OCR + vẽ).
 3. Chạy lại app: `pkill -x TScreen; open build/Build/Products/Debug/TScreen.app`.
 
 **Phụ thuộc:** XcodeGen, Xcode, SPM `KeyboardShortcuts` ghim `2.4.0`.

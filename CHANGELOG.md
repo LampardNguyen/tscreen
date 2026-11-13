@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-13
+
+- Thêm engine dịch "Custom (tương thích OpenAI)": API URL, API key (Keychain `customAPIKey`), model và reasoning effort riêng; dùng lại `OpenAITranslator` với endpoint tuỳ chỉnh.
+
 ## 2026-11-12
 
 - Thêm rule build vào `CLAUDE.md`: luôn dùng `-derivedDataPath build`, sản phẩm nằm trong `build/Build/Products/{Debug,Release}`.

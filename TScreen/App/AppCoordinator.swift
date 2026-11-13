@@ -62,6 +62,7 @@ final class AppCoordinator {
                     switch settings.engine {
                     case "claude": model.status = .working("Đang gửi chữ tới Claude để dịch…")
                     case "openai": model.status = .working("Đang gửi chữ tới OpenAI để dịch…")
+                    case "custom": model.status = .working("Đang gửi chữ tới API custom để dịch…")
                     default: model.status = .working("Đang dịch trên máy…")
                     }
                     let texts: [String]
@@ -70,7 +71,7 @@ final class AppCoordinator {
                             .translate(blocks.map(\.text), from: source, to: settings.targetLanguage)
                     } catch {
                         model.status = .failed(error.localizedDescription)
-                        if ["openai", "claude"].contains(settings.engine) {
+                        if ["openai", "claude", "custom"].contains(settings.engine) {
                             model.retry = { Task { await translateAndCompose() } }
                         }
                         return

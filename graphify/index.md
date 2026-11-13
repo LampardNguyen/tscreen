@@ -7,7 +7,7 @@ App menu bar macOS: nhấn phím tắt → chọn vùng màn hình → chụp �
 - [[pipeline]] — luồng tổng từ phím tắt tới viewer, đo thời gian từng bước
 - [[chup-man-hinh]] — overlay chọn vùng và chụp bằng ScreenCaptureKit
 - [[ocr]] — Vision → danh sách `TextBlock`
-- [[dich]] — protocol `Translator`, ba engine Apple / Claude / OpenAI
+- [[dich]] — protocol `Translator`, bốn engine Apple / Claude / OpenAI / Custom (tương thích OpenAI)
 - [[ve-anh]] — lấy màu nền, màu chữ, co chữ, vẽ bản dịch
 - [[viewer]] — cửa sổ ảnh không viền, thanh công cụ nổi, nhiều viewer cùng lúc
 - [[cai-dat]] — Settings, UserDefaults, Keychain

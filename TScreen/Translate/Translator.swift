@@ -46,6 +46,8 @@ func makeTranslator(_ settings: AppSettings) -> Translator {
     switch settings.engine {
     case "claude": ClaudeTranslator(model: settings.claudeModel)
     case "openai": OpenAITranslator(model: settings.openAIModel, reasoningEffort: settings.openAIReasoningEffort)
+    case "custom": OpenAITranslator(model: settings.customModel, reasoningEffort: settings.customReasoningEffort,
+                                    endpoint: settings.customURL, keychainKey: "customAPIKey", provider: "Custom")
     default: AppleTranslator()
     }
 }

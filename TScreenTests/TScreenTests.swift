@@ -57,6 +57,17 @@ final class TScreenTests: XCTestCase {
         XCTAssertThrowsError(try OpenAITranslator.parse(Data(json.utf8), count: 1))
     }
 
+    func testCustomEngineUsesOwnKeyAndName() async {
+        let translator = makeTranslator(AppSettings(
+            targetLanguage: Locale.Language(identifier: "vi"), engine: "custom", claudeModel: "", openAIModel: "",
+            openAIReasoningEffort: "", customURL: "https://example.test/v1/chat/completions", customModel: "m",
+            customReasoningEffort: "", fontName: ""))
+        let custom = translator as? OpenAITranslator
+        XCTAssertEqual(custom?.endpoint, "https://example.test/v1/chat/completions")
+        XCTAssertEqual(custom?.keychainKey, "customAPIKey")
+        XCTAssertEqual(custom?.provider, "Custom")
+    }
+
     func testAPIErrorShowsOnlyProviderMessage() {
         let body = Data(#"{"error":{"message":"Incorrect API key","type":"auth"},"debug":"internal-detail"}"#.utf8)
         let text = LLMTranslation.apiError("OpenAI", status: 401, data: body).errorDescription ?? ""

@@ -9,6 +9,9 @@ struct AppSettings {
     var claudeModel: String
     var openAIModel: String
     var openAIReasoningEffort: String
+    var customURL: String
+    var customModel: String
+    var customReasoningEffort: String
     var fontName: String
 
     static var current: AppSettings {
@@ -19,6 +22,9 @@ struct AppSettings {
             claudeModel: d.string(forKey: "claudeModel") ?? defaultModel,
             openAIModel: d.string(forKey: "openAIModel") ?? defaultOpenAIModel,
             openAIReasoningEffort: d.string(forKey: "openAIReasoningEffort") ?? "minimal",
+            customURL: d.string(forKey: "customURL") ?? "",
+            customModel: d.string(forKey: "customModel") ?? defaultOpenAIModel,
+            customReasoningEffort: d.string(forKey: "customReasoningEffort") ?? "",
             fontName: d.string(forKey: "fontName") ?? "")
     }
 }
@@ -30,11 +36,23 @@ struct SettingsView: View {
     @AppStorage("fontName") private var fontName = ""
     @AppStorage("openAIModel") private var openAIModel = AppSettings.defaultOpenAIModel
     @AppStorage("openAIReasoningEffort") private var openAIReasoningEffort = "minimal"
+    @AppStorage("customURL") private var customURL = ""
+    @AppStorage("customModel") private var customModel = AppSettings.defaultOpenAIModel
+    @AppStorage("customReasoningEffort") private var customReasoningEffort = ""
     @State private var openAIKey = Keychain.get("openAIAPIKey") ?? ""
+    @State private var customKey = Keychain.get("customAPIKey") ?? ""
     @State private var apiKey = Keychain.get("claudeAPIKey") ?? ""
     @State private var hasPermission = CGPreflightScreenCaptureAccess()
 
     private let languages = ["vi": "Tiếng Việt", "en": "English", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어", "fr": "Français", "de": "Deutsch"]
+
+    private var provider: String {
+        switch engine {
+        case "claude": "Anthropic"
+        case "custom": URL(string: customURL)?.host ?? "API custom"
+        default: "OpenAI"
+        }
+    }
 
     var body: some View {
         Form {
@@ -50,6 +68,7 @@ struct SettingsView: View {
                     Text("Apple Translation (offline)").tag("apple")
                     Text("Claude").tag("claude")
                     Text("OpenAI").tag("openai")
+                    Text("Custom (tương thích OpenAI)").tag("custom")
                 }
                 if engine == "claude" {
                     SecureField("Claude API key", text: $apiKey)
@@ -62,8 +81,15 @@ struct SettingsView: View {
                     TextField("Model", text: $openAIModel)
                     TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $openAIReasoningEffort)
                 }
+                if engine == "custom" {
+                    TextField("API URL (…/v1/chat/completions)", text: $customURL)
+                    SecureField("API key", text: $customKey)
+                        .onChange(of: customKey) { _, value in Keychain.set("customAPIKey", value) }
+                    TextField("Model", text: $customModel)
+                    TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $customReasoningEffort)
+                }
                 if engine != "apple" {
-                    Label("Chữ nhận diện được trong vùng chụp sẽ được gửi tới máy chủ của \(engine == "claude" ? "Anthropic" : "OpenAI"). Tránh chụp vùng có mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. Ảnh không được gửi đi.",
+                    Label("Chữ nhận diện được trong vùng chụp sẽ được gửi tới máy chủ của \(provider). Tránh chụp vùng có mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. Ảnh không được gửi đi.",
                           systemImage: "icloud.and.arrow.up")
                         .font(.callout)
                         .foregroundStyle(.orange)

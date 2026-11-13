@@ -5,11 +5,12 @@
 **File chính:** `TScreen/Translate/Translator.swift`, `AppleTranslator.swift`, `ClaudeTranslator.swift`, `OpenAITranslator.swift` (cùng thư mục)
 
 **Luồng xử lý**
-1. `makeTranslator(settings)` chọn theo `engine`: `"claude"`, `"openai"`, còn lại là Apple.
+1. `makeTranslator(settings)` chọn theo `engine`: `"claude"`, `"openai"`, `"custom"`, còn lại là Apple.
 2. **Apple:** kiểm tra `LanguageAvailability().status`, dùng `TranslationSession(installedSource:target:)` và `translations(from:)` — chạy trên máy.
 3. **Claude / OpenAI:** gửi **một request duy nhất** chứa mảng JSON các chuỗi; `LLMTranslation.systemPrompt` yêu cầu trả mảng JSON cùng độ dài; `parseArray(_:count:)` kiểm tra.
    - Claude: `POST https://api.anthropic.com/v1/messages`, model mặc định `claude-sonnet-5-5`.
    - OpenAI: `POST https://api.openai.com/v1/chat/completions`, model mặc định `gpt-5-mini`, `reasoning_effort` mặc định `minimal` (chỉ gửi khi không rỗng).
+   - Custom: dùng lại `OpenAITranslator` với `endpoint` = URL người dùng nhập (API tương thích OpenAI Chat Completions), `keychainKey` = `customAPIKey`, `provider` = `"Custom"`; `reasoning_effort` mặc định rỗng. URL phải là http/https có host, nếu không báo lỗi.
 
 **Phụ thuộc:** Translation framework, URLSession, API key trong Keychain ([[cai-dat]]).
 

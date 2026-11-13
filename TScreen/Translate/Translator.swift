@@ -42,12 +42,20 @@ enum LLMTranslation {
     }
 }
 
+/// Base URL kiểu OpenAI (`…/v1`) → endpoint Chat Completions; bỏ khoảng trắng và dấu `/` thừa ở cuối.
+func chatCompletionsURL(base: String) -> String {
+    var base = base.trimmingCharacters(in: .whitespaces)
+    while base.hasSuffix("/") { base.removeLast() }
+    return base + "/chat/completions"
+}
+
 func makeTranslator(_ settings: AppSettings) -> Translator {
     switch settings.engine {
     case "claude": ClaudeTranslator(model: settings.claudeModel)
     case "openai": OpenAITranslator(model: settings.openAIModel, reasoningEffort: settings.openAIReasoningEffort)
     case "custom": OpenAITranslator(model: settings.customModel, reasoningEffort: settings.customReasoningEffort,
-                                    endpoint: settings.customURL, keychainKey: "customAPIKey", provider: "Custom")
+                                    endpoint: chatCompletionsURL(base: settings.customURL),
+                                    keychainKey: "customAPIKey", provider: "Custom")
     default: AppleTranslator()
     }
 }

@@ -82,7 +82,7 @@ struct SettingsView: View {
                     TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $openAIReasoningEffort)
                 }
                 if engine == "custom" {
-                    TextField("API URL (…/v1/chat/completions)", text: $customURL)
+                    TextField("Base URL (…/v1)", text: $customURL)
                     SecureField("API key", text: $customKey)
                         .onChange(of: customKey) { _, value in Keychain.set("customAPIKey", value) }
                     TextField("Model", text: $customModel)

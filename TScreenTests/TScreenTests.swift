@@ -60,10 +60,11 @@ final class TScreenTests: XCTestCase {
     func testCustomEngineUsesOwnKeyAndName() async {
         let translator = makeTranslator(AppSettings(
             targetLanguage: Locale.Language(identifier: "vi"), engine: "custom", claudeModel: "", openAIModel: "",
-            openAIReasoningEffort: "", customURL: "https://example.test/v1/chat/completions", customModel: "m",
+            openAIReasoningEffort: "", customURL: "https://example.test/v1/", customModel: "m",
             customReasoningEffort: "", fontName: ""))
         let custom = translator as? OpenAITranslator
         XCTAssertEqual(custom?.endpoint, "https://example.test/v1/chat/completions")
+        XCTAssertEqual(chatCompletionsURL(base: " https://example.test/v1 "), "https://example.test/v1/chat/completions")
         XCTAssertEqual(custom?.keychainKey, "customAPIKey")
         XCTAssertEqual(custom?.provider, "Custom")
     }

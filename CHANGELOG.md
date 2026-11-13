@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## 2026-11-13
 
 - Thêm engine dịch "Custom (tương thích OpenAI)": API URL, API key (Keychain `customAPIKey`), model và reasoning effort riêng; dùng lại `OpenAITranslator` với endpoint tuỳ chỉnh.
+- Engine Custom chỉ cần nhập base URL (vd `…/openai-custom/v1`); app tự ghép thêm `/chat/completions`.
 
 ## 2026-11-12
 

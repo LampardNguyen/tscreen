@@ -4,6 +4,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## 2026-11-13
 
+- Chụp "đóng băng" màn hình ngay khi bấm phím tắt, trước khi mở overlay chọn vùng; overlay hiện ảnh đã chụp và vùng chọn được cắt từ ảnh đó, nên popup/tooltip hiện do hover trên browser không còn bị mất.
 - Thêm engine dịch "Custom (tương thích OpenAI)": API URL, API key (Keychain `customAPIKey`), model và reasoning effort riêng; dùng lại `OpenAITranslator` với endpoint tuỳ chỉnh.
 - Engine Custom chỉ cần nhập base URL (vd `…/openai-custom/v1`); app tự ghép thêm `/chat/completions`.
 - Settings: thêm icon `?` sau "Base URL", hover hiện gợi ý định dạng và ví dụ; cảnh báo gửi dữ liệu hiện đúng host kể cả khi URL có khoảng trắng thừa.

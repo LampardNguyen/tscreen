@@ -9,13 +9,23 @@ enum CaptureError: LocalizedError {
 }
 
 enum ScreenCapturer {
-    /// `region` theo toạ độ màn hình AppKit (gốc dưới-trái của màn hình chính).
-    static func capture(_ region: CGRect) async throws -> CGImage {
+    /// Chụp nguyên một màn hình (độ phân giải Retina). Gọi trước khi mở overlay để "đóng băng"
+    /// màn hình, giữ lại các popup/tooltip đang hiện do hover.
+    static func capture(_ screen: NSScreen) async throws -> CGImage {
         guard CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() else {
             throw CaptureError.noPermission
         }
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
-        let rect = CGRect(x: region.minX, y: primaryHeight - region.maxY, width: region.width, height: region.height)
+        let f = screen.frame
+        let rect = CGRect(x: f.minX, y: primaryHeight - f.maxY, width: f.width, height: f.height)
         return try await SCScreenshotManager.captureImage(in: rect)
+    }
+
+    /// Cắt `local` (toạ độ trong màn hình, gốc dưới-trái, đơn vị point) từ ảnh chụp cả màn hình.
+    static func crop(_ image: CGImage, screenSize: CGSize, local: CGRect) -> CGImage? {
+        let scale = CGFloat(image.width) / screenSize.width
+        let rect = CGRect(x: local.minX * scale, y: (screenSize.height - local.maxY) * scale,
+                          width: local.width * scale, height: local.height * scale).integral
+        return image.cropping(to: rect)
     }
 }

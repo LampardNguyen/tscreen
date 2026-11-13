@@ -26,11 +26,20 @@ final class AppCoordinator {
         guard !isSelecting else { return }
         isSelecting = true
         Task {
-            let selected = await RegionSelector().select()
-            isSelecting = false
-            guard let region = selected else { return }
             let model = ViewerModel()
             let viewer = ViewerWindowController()
+            let selected: (region: CGRect, image: CGImage)?
+            do {
+                selected = try await RegionSelector().select()
+            } catch {
+                isSelecting = false
+                model.status = .failed(error.localizedDescription)
+                let screen = NSScreen.main?.frame ?? .zero
+                viewer.show(model, near: CGRect(x: screen.midX - 210, y: screen.midY - 45, width: 420, height: 90))
+                return
+            }
+            isSelecting = false
+            guard let (region, image) = selected else { return }
             // Đo thời gian từng bước để biết bước nào chậm.
             let clock = ContinuousClock()
             var mark = clock.now
@@ -40,8 +49,6 @@ final class AppCoordinator {
                 model.timings.append(String(format: "%@ %.2fs", name, seconds))
             }
             do {
-                let image = try await ScreenCapturer.capture(region)
-                lap("Chụp")
                 model.original = image
                 model.status = .working("Đang nhận diện chữ…")
                 viewer.show(model, near: region)

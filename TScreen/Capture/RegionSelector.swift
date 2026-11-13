@@ -1,16 +1,21 @@
 import AppKit
 
 /// Overlay toàn màn hình (mỗi màn hình một cửa sổ) để kéo chọn vùng.
-/// Trả về hình chữ nhật theo toạ độ màn hình của AppKit (gốc dưới-trái), hoặc nil nếu huỷ.
+/// Màn hình được chụp trước rồi hiện làm nền overlay ("đóng băng"), nên popup hover không bị mất.
+/// Trả về vùng theo toạ độ màn hình AppKit (gốc dưới-trái) kèm ảnh đã cắt, hoặc nil nếu huỷ.
 @MainActor
 final class RegionSelector {
     private var windows: [NSWindow] = []
-    private var continuation: CheckedContinuation<CGRect?, Never>?
+    private var continuation: CheckedContinuation<(CGRect, CGImage)?, Never>?
 
-    func select() async -> CGRect? {
-        let rect = await withCheckedContinuation { (c: CheckedContinuation<CGRect?, Never>) in
+    func select() async throws -> (region: CGRect, image: CGImage)? {
+        var shots: [(NSScreen, CGImage)] = []
+        for screen in NSScreen.screens {
+            shots.append((screen, try await ScreenCapturer.capture(screen)))
+        }
+        return await withCheckedContinuation { (c: CheckedContinuation<(CGRect, CGImage)?, Never>) in
             continuation = c
-            for screen in NSScreen.screens {
+            for (screen, shot) in shots {
                 let window = OverlayWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
                 window.level = .screenSaver
                 window.isOpaque = false
@@ -18,8 +23,14 @@ final class RegionSelector {
                 window.isReleasedWhenClosed = false
                 window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 let view = SelectionView(frame: CGRect(origin: .zero, size: screen.frame.size))
+                view.frozen = NSImage(cgImage: shot, size: screen.frame.size)
                 view.onFinish = { [weak self] local in
-                    self?.finish(local.map { $0.offsetBy(dx: screen.frame.minX, dy: screen.frame.minY) })
+                    let result = local.flatMap { local in
+                        ScreenCapturer.crop(shot, screenSize: screen.frame.size, local: local).map {
+                            (local.offsetBy(dx: screen.frame.minX, dy: screen.frame.minY), $0)
+                        }
+                    }
+                    self?.finish(result)
                 }
                 window.contentView = view
                 window.makeKeyAndOrderFront(nil)
@@ -28,15 +39,12 @@ final class RegionSelector {
             }
             NSApp.activate(ignoringOtherApps: true)
         }
-        // Chờ overlay biến mất khỏi màn hình trước khi chụp.
-        try? await Task.sleep(for: .milliseconds(80))
-        return rect
     }
 
-    private func finish(_ rect: CGRect?) {
+    private func finish(_ result: (CGRect, CGImage)?) {
         windows.forEach { $0.close() }
         windows = []
-        continuation?.resume(returning: rect)
+        continuation?.resume(returning: result)
         continuation = nil
     }
 }
@@ -47,6 +55,7 @@ private final class OverlayWindow: NSWindow {
 
 private final class SelectionView: NSView {
     var onFinish: ((CGRect?) -> Void)?
+    var frozen: NSImage?
     private var start: CGPoint?
     private var selection: CGRect = .zero
 
@@ -95,11 +104,12 @@ private final class SelectionView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
+        frozen?.draw(in: bounds)
         NSColor.black.withAlphaComponent(0.3).setFill()
         bounds.fill()
         guard !selection.isEmpty else { return }
-        NSColor.clear.setFill()
-        selection.fill(using: .copy)
+        // Vùng chọn hiện ảnh đóng băng gốc, không bị phủ tối.
+        frozen?.draw(in: selection, from: selection, operation: .copy, fraction: 1)
         NSColor.white.setStroke()
         NSBezierPath(rect: selection).stroke()
         let label = "\(Int(selection.width)) × \(Int(selection.height))" as NSString

@@ -65,6 +65,7 @@ final class AppCoordinator {
                 @MainActor func translateAndCompose() async {
                     let settings = AppSettings.current
                     model.retry = nil
+                    model.errorDetail = nil
                     mark = clock.now
                     switch settings.engine {
                     case "claude": model.status = .working("Đang gửi chữ tới Claude để dịch…")
@@ -78,6 +79,7 @@ final class AppCoordinator {
                             .translate(blocks.map(\.text), from: source, to: settings.targetLanguage)
                     } catch {
                         model.status = .failed(error.localizedDescription)
+                        model.errorDetail = (error as? TranslationError)?.detail
                         if ["openai", "claude", "custom"].contains(settings.engine) {
                             model.retry = { Task { await translateAndCompose() } }
                         }

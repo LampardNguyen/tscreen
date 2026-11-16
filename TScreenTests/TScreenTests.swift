@@ -46,15 +46,48 @@ final class TScreenTests: XCTestCase {
     }
 
     func testClaudeParse() throws {
-        let json = #"{"content":[{"type":"text","text":"```json\n[\"Xin chào\",\"Thế giới\"]\n```"}]}"#
-        XCTAssertEqual(try ClaudeTranslator.parse(Data(json.utf8), count: 2), ["Xin chào", "Thế giới"])
-        XCTAssertThrowsError(try ClaudeTranslator.parse(Data(json.utf8), count: 3))
+        // Đường chính: tool_use; đường dự phòng: text có code fence.
+        let tool = #"{"content":[{"type":"tool_use","name":"submit_translations","input":{"2":"Thế giới","1":"Xin chào"}}],"stop_reason":"tool_use"}"#
+        XCTAssertEqual(try ClaudeTranslator.parse(Data(tool.utf8), input: ["Hello", "World"]), ["Xin chào", "Thế giới"])
+        let text = #"{"content":[{"type":"text","text":"```json\n{\"1\":\"Xin chào\",\"2\":\"Thế giới\"}\n```"}]}"#
+        XCTAssertEqual(try ClaudeTranslator.parse(Data(text.utf8), input: ["Hello", "World"]), ["Xin chào", "Thế giới"])
     }
 
     func testOpenAIParse() throws {
-        let json = #"{"choices":[{"message":{"role":"assistant","content":"[\"Xin chào\",\"Thế giới\"]"}}]}"#
-        XCTAssertEqual(try OpenAITranslator.parse(Data(json.utf8), count: 2), ["Xin chào", "Thế giới"])
-        XCTAssertThrowsError(try OpenAITranslator.parse(Data(json.utf8), count: 1))
+        let json = #"{"choices":[{"message":{"role":"assistant","content":"{\"1\":\"Xin chào\",\"2\":\"Thế giới\"}"}}]}"#
+        XCTAssertEqual(try OpenAITranslator.parse(Data(json.utf8), input: ["Hello", "World"]), ["Xin chào", "Thế giới"])
+    }
+
+    /// Input giữ thứ tự id số (không phải "1","10","2"); schema bắt buộc đủ mọi id.
+    func testKeyedInputAndSchema() throws {
+        let texts = (1...10).map { "t\($0)" }
+        XCTAssertTrue(try LLMTranslation.keyedInput(texts).hasPrefix(#"{"1":"t1","2":"t2","#))
+        XCTAssertEqual(LLMTranslation.schema(count: 3)["required"] as? [String], ["1", "2", "3"])
+    }
+
+    /// Thiếu id (model gộp câu bị OCR cắt) thì giữ chữ gốc thay vì báo lỗi cả lô.
+    func testMissingIdKeepsOriginal() throws {
+        XCTAssertEqual(try LLMTranslation.parseKeyed(#"{"1":"Câu đầy đủ","3":"C"}"#, input: ["A1", "A2", "B"]),
+                       ["Câu đầy đủ", "A2", "C"])
+    }
+
+    /// Mỗi loại lỗi định dạng có thông báo riêng và kèm chi tiết chứa phản hồi gốc.
+    func testParseErrorKinds() {
+        func message(_ block: () throws -> Any) -> (String, String) {
+            do { _ = try block(); return ("", "") } catch let e as TranslationError {
+                return (e.errorDescription ?? "", e.detail ?? "")
+            } catch { return ("", "") }
+        }
+        let cut = #"{"content":[{"type":"text","text":"{\"1\":\"a\","}],"stop_reason":"max_tokens"}"#
+        XCTAssertTrue(message { try ClaudeTranslator.parse(Data(cut.utf8), input: ["A", "B"]) }.0.contains("bị cắt"))
+        let length = #"{"choices":[{"message":{"content":"{\"1\":\"a\""},"finish_reason":"length"}]}"#
+        XCTAssertTrue(message { try OpenAITranslator.parse(Data(length.utf8), input: ["A", "B"]) }.0.contains("bị cắt"))
+
+        XCTAssertTrue(message { try LLMTranslation.parseKeyed("xin lỗi", input: ["A"]) }.0.contains("không trả về object"))
+        XCTAssertTrue(message { try LLMTranslation.parseKeyed(#"{"1" "a"}"#, input: ["A"]) }.0.contains("JSON hỏng"))
+        let (text, detail) = message { try LLMTranslation.parseKeyed(#"{"x":"y"}"#, input: ["A", "B"]) }
+        XCTAssertTrue(text.contains("sai id"))
+        XCTAssertTrue(detail.contains("1. A") && detail.contains("2. B") && detail.contains(#"{"x":"y"}"#))
     }
 
     func testCustomEngineUsesOwnKeyAndName() async {
@@ -67,6 +100,7 @@ final class TScreenTests: XCTestCase {
         XCTAssertEqual(chatCompletionsURL(base: " https://example.test/v1 "), "https://example.test/v1/chat/completions")
         XCTAssertEqual(custom?.keychainKey, "customAPIKey")
         XCTAssertEqual(custom?.provider, "Custom")
+        XCTAssertEqual(custom?.structuredOutput, false)
     }
 
     func testAPIErrorShowsOnlyProviderMessage() {

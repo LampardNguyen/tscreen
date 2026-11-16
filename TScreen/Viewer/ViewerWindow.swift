@@ -16,6 +16,8 @@ final class ViewerModel: ObservableObject {
     @Published var showTimings = false
     /// Có giá trị khi bước dịch qua API lỗi: viewer hiện nút "Thử lại" gọi lại API.
     @Published var retry: (() -> Void)?
+    /// Có giá trị khi lỗi kèm thông tin chẩn đoán: viewer hiện nút "Chi tiết" mở cửa sổ xem đầy đủ.
+    @Published var errorDetail: String?
 
     var displayed: CGImage? { showOriginal ? original : (translated ?? original) }
 }
@@ -226,6 +228,9 @@ struct ViewerImageView: View {
         case .failed(let message):
             HStack(spacing: 8) {
                 Label(message, systemImage: "exclamationmark.triangle.fill").textSelection(.enabled)
+                if let detail = model.errorDetail {
+                    Button("Chi tiết") { ErrorDetailWindow.show(title: message, detail: detail) }
+                }
                 if let retry = model.retry {
                     Button("Thử lại", action: retry)
                 }
@@ -243,6 +248,55 @@ struct ViewerImageView: View {
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                 .padding(8)
         }
+    }
+}
+
+/// Cửa sổ có tiêu đề, đổi được kích thước, hiện chi tiết lỗi dài (cuộn được, chọn/sao chép được).
+/// Chỉ giữ một cửa sổ: mở lỗi mới thì thay nội dung cửa sổ cũ.
+@MainActor
+enum ErrorDetailWindow {
+    private static var window: NSWindow?
+
+    static func show(title: String, detail: String) {
+        let window = window ?? {
+            let w = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 760, height: 560),
+                             styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
+            w.isReleasedWhenClosed = false
+            // Viewer nằm ở level floating nên cửa sổ này cũng phải floating để không bị che.
+            w.level = .floating
+            w.center()
+            return w
+        }()
+        window.title = "Chi tiết lỗi"
+        window.contentView = NSHostingView(rootView: ErrorDetailView(title: title, detail: detail))
+        Self.window = window
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+}
+
+private struct ErrorDetailView: View {
+    let title: String
+    let detail: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: "exclamationmark.triangle.fill").font(.headline).textSelection(.enabled)
+            ScrollView {
+                Text(detail).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(8)
+            }
+            .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
+            HStack {
+                Spacer()
+                Button("Sao chép") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(title + "\n\n" + detail, forType: .string)
+                }
+            }
+        }
+        .padding(14)
+        .frame(minWidth: 480, minHeight: 320)
     }
 }
 

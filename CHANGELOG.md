@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-16
+
+- Lỗi "Engine dịch trả về kết quả không đúng định dạng" được tách thành: bị cắt do hết token (đọc `stop_reason`/`finish_reason`), không có mảng JSON, JSON hỏng, sai số khối (nhận X, cần Y). Viewer có nút "Chi tiết" mở cửa sổ lớn xem input, kết quả đã parse và phản hồi gốc, kèm nút sao chép.
+- Engine LLM gửi và nhận dạng object có id (`{"1": …, "2": …}`) thay vì mảng: khi OCR cắt một câu thành nhiều khối mà model gộp lại, lô dịch không còn bị bỏ cả lô; id thiếu thì giữ chữ gốc. OpenAI dùng structured output `json_schema` strict, Claude dùng tool use bắt buộc (`submit_translations`), schema bắt buộc đủ mọi id. Engine Custom chỉ dùng định dạng id qua prompt (không gửi `response_format`).
+
 ## 2026-11-13
 
 - Chụp "đóng băng" màn hình ngay khi bấm phím tắt, trước khi mở overlay chọn vùng; overlay hiện ảnh đã chụp và vùng chọn được cắt từ ảnh đó, nên popup/tooltip hiện do hover trên browser không còn bị mất.

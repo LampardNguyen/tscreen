@@ -29,6 +29,17 @@ final class ViewerWindowController {
     private static var open: [ViewerWindowController] = []
     static func closeAll() { open.forEach { $0.close() } }
 
+    /// Bản ghi lịch sử mà viewer này đang hiển thị, dùng để không mở trùng viewer cho cùng một item.
+    var historyID: UUID?
+
+    /// Đưa viewer đang mở của bản ghi `id` lên trước; trả về false nếu chưa có viewer nào cho bản ghi đó.
+    static func activate(historyID id: UUID) -> Bool {
+        guard let viewer = open.first(where: { $0.historyID == id }), let window = viewer.window else { return false }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        return true
+    }
+
     private var window: ViewerWindow?
     private var toolbar: NSPanel?
     private var model: ViewerModel?
@@ -84,6 +95,8 @@ final class ViewerWindowController {
         window.hasShadow = true
         window.level = .floating
         window.isReleasedWhenClosed = false
+        // Kích hoạt lại viewer (từ lịch sử) thì kéo nó sang Desktop đang dùng thay vì nhảy về Desktop cũ.
+        window.collectionBehavior.insert(.moveToActiveSpace)
     }
 
     /// Đổi kích thước ảnh theo zoom (giữ góc trên-trái) và đặt thanh công cụ ngay dưới ảnh.

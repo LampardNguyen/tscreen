@@ -43,6 +43,7 @@ struct SettingsView: View {
     @State private var customKey = Keychain.get("customAPIKey") ?? ""
     @State private var apiKey = Keychain.get("claudeAPIKey") ?? ""
     @State private var hasPermission = CGPreflightScreenCaptureAccess()
+    @AppStorage(HistoryStore.enabledKey) private var saveHistory = true
 
     private let languages = ["vi": "Tiếng Việt", "en": "English", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어", "fr": "Français", "de": "Deutsch"]
 
@@ -62,6 +63,11 @@ struct SettingsView: View {
                     ForEach(languages.sorted { $0.value < $1.value }, id: \.key) { Text($0.value).tag($0.key) }
                 }
                 TextField("Font chữ (để trống = font hệ thống)", text: $fontName)
+            }
+            Section("Lịch sử") {
+                KeyboardShortcuts.Recorder("Phím tắt mở lịch sử", name: .showHistory)
+                Toggle("Lưu lịch sử dịch (tối đa \(HistoryStore.shared.limit) bản, chỉ lưu trên máy)", isOn: $saveHistory)
+                Button("Xoá tất cả lịch sử", role: .destructive) { HistoryStore.shared.deleteAll() }
             }
             Section("Engine dịch") {
                 Picker("Engine", selection: $engine) {
@@ -112,6 +118,10 @@ struct SettingsView: View {
                             hasPermission = CGPreflightScreenCaptureAccess()
                         }
                     }
+                }
+                // Luôn hiện: app ký ad-hoc nên mỗi bản build mới có thể mất quyền, cần vào System Settings xoá/bật lại.
+                Button("Mở System Settings → Screen Recording") {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
                 }
             }
         }

@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## 2026-11-16
 
+- Phím tắt mở Cài đặt đổi từ ⌘, (chỉ khi menu đang mở) thành phím tắt toàn cục ⌃⇧, (`KeyboardShortcuts.Name.openSettings`); menu hiển thị đúng phím mới.
+
+- Viewer có `.moveToActiveSpace`: bấm item lịch sử có viewer đang mở ở Desktop khác thì viewer chuyển sang Desktop hiện tại.
+
+- Cửa sổ Lịch sử có nút "Xoá tất cả" cạnh ô tìm kiếm (hỏi xác nhận trước khi xoá).
+
+- Lịch sử: bấm item đang có viewer mở (kể cả viewer vừa chụp) thì chỉ đưa viewer đó lên trước, không tạo viewer trùng.
+
+- Lịch sử: con trỏ đổi thành bàn tay khi hover item; cửa sổ mở ở Desktop đang dùng thay vì nhảy về Desktop mở lần đầu (`.moveToActiveSpace`).
+
+- Cài đặt → Quyền: nút "Mở System Settings → Screen Recording" luôn hiển thị, mở thẳng trang cấp quyền ghi màn hình.
+
+- Lịch sử dịch: mỗi lần dịch xong tự lưu ảnh đã dịch + chữ gốc/chữ dịch vào `~/Library/Application Support/TScreen/History` (tối đa 200 bản, "Thử lại" thay bản cũ). Cửa sổ "Lịch sử dịch" mở bằng ⌃⇧H hoặc menu "Lịch sử…": tìm kiếm không phân biệt hoa thường/dấu, thumbnail, nút xoá từng item, bấm item mở lại viewer. Cài đặt có phím tắt, công tắc lưu lịch sử (mặc định bật) và nút "Xoá tất cả lịch sử".
+
 - Lỗi "Engine dịch trả về kết quả không đúng định dạng" được tách thành: bị cắt do hết token (đọc `stop_reason`/`finish_reason`), không có mảng JSON, JSON hỏng, sai số khối (nhận X, cần Y). Viewer có nút "Chi tiết" mở cửa sổ lớn xem input, kết quả đã parse và phản hồi gốc, kèm nút sao chép.
 - Engine LLM gửi và nhận dạng object có id (`{"1": …, "2": …}`) thay vì mảng: khi OCR cắt một câu thành nhiều khối mà model gộp lại, lô dịch không còn bị bỏ cả lô; id thiếu thì giữ chữ gốc. OpenAI dùng structured output `json_schema` strict, Claude dùng tool use bắt buộc (`submit_translations`), schema bắt buộc đủ mọi id. Engine Custom chỉ dùng định dạng id qua prompt (không gửi `response_format`).
 

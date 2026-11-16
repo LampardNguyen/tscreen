@@ -90,6 +90,36 @@ final class TScreenTests: XCTestCase {
         XCTAssertTrue(detail.contains("1. A") && detail.contains("2. B") && detail.contains(#"{"x":"y"}"#))
     }
 
+    /// Lưu → đọc lại từ đĩa → tìm (không dấu) → xoá → tự xoá bản cũ khi vượt giới hạn.
+    @MainActor
+    func testHistoryStore() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let ctx = CGContext(data: nil, width: 40, height: 20, bitsPerComponent: 8, bytesPerRow: 0,
+                            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        let image = ctx.makeImage()!
+
+        let store = HistoryStore(directory: dir, limit: 2)
+        let first = try store.add(image: image, size: CGSize(width: 40, height: 20), engine: "openai", sourceText: "決済", translatedText: "Thanh toán")
+        try store.add(image: image, size: CGSize(width: 40, height: 20), engine: "claude", sourceText: "Hello", translatedText: "Xin chào")
+        XCTAssertEqual(HistoryStore(directory: dir).entries.map(\.translatedText), ["Xin chào", "Thanh toán"])
+        XCTAssertNotNil(store.image(first))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: store.thumbnailURL(first).path))
+
+        XCTAssertEqual(HistoryStore.filter(store.entries, query: "thanh toan").map(\.id), [first])
+        XCTAssertEqual(HistoryStore.filter(store.entries, query: "決済").map(\.id), [first])
+        XCTAssertEqual(HistoryStore.filter(store.entries, query: " ").count, 2)
+
+        try store.add(image: image, size: .zero, engine: "apple", sourceText: "", translatedText: "Mới")
+        XCTAssertEqual(store.entries.map(\.translatedText), ["Mới", "Xin chào"])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.folder(first).path))
+
+        store.delete(store.entries[0].id)
+        XCTAssertEqual(store.entries.map(\.translatedText), ["Xin chào"])
+        store.deleteAll()
+        XCTAssertTrue(HistoryStore(directory: dir).entries.isEmpty)
+    }
+
     func testCustomEngineUsesOwnKeyAndName() async {
         let translator = makeTranslator(AppSettings(
             targetLanguage: Locale.Language(identifier: "vi"), engine: "custom", claudeModel: "", openAIModel: "",

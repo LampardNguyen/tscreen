@@ -18,6 +18,7 @@
 **Lưu ý/bẫy**
 - SwiftUI nuốt sự kiện chuột nên phải dùng `DraggableHostingView` (`performDrag`) mới kéo được cửa sổ.
 - `ViewerWindow.controller` là `weak`; controller sống nhờ danh sách `open`.
+- `configure(_:)` thêm `.moveToActiveSpace` cho cả ảnh lẫn thanh công cụ: kích hoạt lại viewer (từ [[lich-su]]) thì viewer sang Desktop đang dùng.
 - Cửa sổ borderless phải override `canBecomeKey` mới nhận phím.
 
 ## Liên quan

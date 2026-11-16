@@ -60,6 +60,8 @@ final class AppCoordinator {
                     return
                 }
                 let source = Self.detectLanguage(blocks.map(\.text).joined(separator: "\n"))
+                // Id bản ghi lịch sử của lần chụp này; "Thử lại" thành công thì thay bản cũ thay vì thêm bản mới.
+                var historyID: UUID?
 
                 // Bước dịch + vẽ tách riêng để nút "Thử lại" gọi lại API mà không cần chụp/OCR lại.
                 @MainActor func translateAndCompose() async {
@@ -92,6 +94,19 @@ final class AppCoordinator {
                     lap("Vẽ")
                     model.translatedText = texts.joined(separator: "\n")
                     model.status = .done
+                    if HistoryStore.isEnabled, let translated = model.translated {
+                        if let historyID { HistoryStore.shared.delete(historyID) }
+                        // Lưu lịch sử lỗi (đầy đĩa, quyền) không được làm hỏng kết quả đang hiện, chỉ ghi log.
+                        do {
+                            historyID = try HistoryStore.shared.add(image: translated, size: region.size, engine: settings.engine,
+                                                                    sourceText: blocks.map(\.text).joined(separator: "\n"),
+                                                                    translatedText: model.translatedText)
+                            // Gắn id để mở item này từ lịch sử thì kích hoạt lại viewer đang mở thay vì tạo mới.
+                            viewer.historyID = historyID
+                        } catch {
+                            NSLog("TScreen: không lưu được lịch sử: %@", error.localizedDescription)
+                        }
+                    }
                     NSLog("TScreen timings: %@", model.timings.joined(separator: " · "))
                 }
                 await translateAndCompose()

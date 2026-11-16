@@ -10,5 +10,6 @@ App menu bar macOS: nhấn phím tắt → chọn vùng màn hình → chụp �
 - [[dich]] — protocol `Translator`, bốn engine Apple / Claude / OpenAI / Custom (tương thích OpenAI)
 - [[ve-anh]] — lấy màu nền, màu chữ, co chữ, vẽ bản dịch
 - [[viewer]] — cửa sổ ảnh không viền, thanh công cụ nổi, nhiều viewer cùng lúc
+- [[lich-su]] — lưu ảnh đã dịch + chữ, cửa sổ tìm kiếm/xoá/mở lại, phím tắt ⌃⇧H
 - [[cai-dat]] — Settings, UserDefaults, Keychain
 - [[build-va-test]] — XcodeGen, lệnh build/test, ký app

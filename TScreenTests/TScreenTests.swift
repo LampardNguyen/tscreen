@@ -175,4 +175,38 @@ final class TScreenTests: XCTestCase {
                 .write(to: URL(fileURLWithPath: dir).appendingPathComponent("composed.png"))
         }
     }
+
+    /// Bắt lỗi gõ sai/xoá nhầm khoá: mọi `L("khoá")` trong source phải có ở mọi file ngôn ngữ,
+    /// các file có cùng tập khoá và cùng tham số định dạng (sai tham số làm `String(format:)` crash).
+    func testLocalizationKeysComplete() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = root.appendingPathComponent("TScreen")
+        var used = Set<String>()
+        let regex = try NSRegularExpression(pattern: #"\bL\("([A-Za-z0-9_.]+)""#)
+        for case let url as URL in FileManager.default.enumerator(at: source, includingPropertiesForKeys: nil)!
+        where url.pathExtension == "swift" {
+            let text = try String(contentsOf: url, encoding: .utf8)
+            for m in regex.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+                used.insert(String(text[Range(m.range(at: 1), in: text)!]))
+            }
+        }
+        XCTAssertFalse(used.isEmpty)
+        // App thực sự nạp được JSON từ bundle (file đã được copy vào Resources).
+        XCTAssertEqual(L10n.table("en")["menu.quit"], "Quit")
+        let specifiers = try NSRegularExpression(pattern: "%[@d]")
+        func args(_ s: String) -> [String] {
+            specifiers.matches(in: s, range: NSRange(s.startIndex..., in: s)).map { String(s[Range($0.range, in: s)!]) }
+        }
+        let tables = try AppLanguage.options.map { code, _ in
+            (code, try JSONDecoder().decode([String: String].self, from: Data(contentsOf: source.appendingPathComponent("Resources/i18n/\(code).json"))))
+        }
+        let vi = tables.first { $0.0 == "vi" }!.1
+        for (code, table) in tables {
+            XCTAssertEqual(used.subtracting(table.keys), [], "\(code).json thiếu khoá đang dùng")
+            XCTAssertEqual(Set(table.keys), Set(vi.keys), "\(code).json khác tập khoá với vi.json")
+            for (key, value) in table where vi[key] != nil {
+                XCTAssertEqual(args(value), args(vi[key]!), "\(code).json khoá \(key) sai tham số")
+            }
+        }
+    }
 }

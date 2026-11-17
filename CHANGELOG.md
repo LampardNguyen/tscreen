@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## 2026-11-17
 
+- Đa ngôn ngữ giao diện Việt / Anh / Nhật (mặc định Tiếng Việt): chọn ở Cài đặt → Chung → "Ngôn ngữ giao diện" (`appLanguage`), đổi là áp dụng ngay không cần mở lại app. Chuỗi giao diện lưu theo khoá (vd. `menu.capture`), mỗi ngôn ngữ một file `TScreen/Resources/i18n/{vi,en,ja}.json`; test `testLocalizationKeysComplete` báo lỗi khi code dùng khoá không có trong file, các file lệch khoá hoặc lệch tham số `%@`/`%d`.
+
 - Lịch sử: thêm nút bút chì ở mỗi dòng để đặt/sửa tiêu đề gợi nhớ (lưu trong `meta.json`, để trống = bỏ tiêu đề); ô tìm kiếm khớp cả tiêu đề.
 
 ## 2026-11-16

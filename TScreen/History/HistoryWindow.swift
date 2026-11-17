@@ -9,7 +9,6 @@ enum HistoryWindow {
         if window == nil {
             let w = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 560, height: 640),
                              styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
-            w.title = "Lịch sử dịch"
             w.isReleasedWhenClosed = false
             // Cửa sổ được dùng lại sau khi đóng: thiếu cờ này macOS chuyển về Desktop (Space) nơi cửa sổ mở lần đầu.
             w.collectionBehavior.insert(.moveToActiveSpace)
@@ -17,6 +16,8 @@ enum HistoryWindow {
             w.center()
             window = w
         }
+        // Gán tiêu đề mỗi lần mở vì cửa sổ được dùng lại, ngôn ngữ giao diện có thể đã đổi.
+        window?.title = L("history.windowTitle")
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
     }
@@ -45,6 +46,8 @@ private struct HistoryView: View {
     /// Bản ghi đang sửa tiêu đề (nil = không hiện alert) và nội dung ô nhập.
     @State private var renaming: HistoryEntry?
     @State private var titleDraft = ""
+    // Theo dõi ngôn ngữ giao diện để cửa sổ đang mở đổi chữ ngay khi đổi trong Cài đặt.
+    @AppStorage(AppLanguage.key) private var appLanguage = "vi"
 
     private var results: [HistoryEntry] { HistoryStore.filter(store.entries, query: query) }
 
@@ -52,21 +55,21 @@ private struct HistoryView: View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Tìm trong tiêu đề, chữ gốc hoặc chữ dịch", text: $query).textFieldStyle(.plain)
+                TextField(L("history.search"), text: $query).textFieldStyle(.plain)
                 if !query.isEmpty {
                     Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain).foregroundStyle(.secondary)
                 }
                 // Xoá từng item thì xoá ngay, còn xoá tất cả không hoàn tác được nên phải xác nhận.
-                Button("Xoá tất cả", role: .destructive) { confirmDeleteAll = true }
+                Button(L("history.deleteAll"), role: .destructive) { confirmDeleteAll = true }
                     .disabled(store.entries.isEmpty)
-                    .confirmationDialog("Xoá toàn bộ \(store.entries.count) bản dịch trong lịch sử?", isPresented: $confirmDeleteAll) {
-                        Button("Xoá tất cả", role: .destructive) { store.deleteAll() }
+                    .confirmationDialog(L("history.deleteAllConfirm", store.entries.count), isPresented: $confirmDeleteAll) {
+                        Button(L("history.deleteAll"), role: .destructive) { store.deleteAll() }
                     }
             }
             .padding(10)
             Divider()
             if results.isEmpty {
-                Text(store.entries.isEmpty ? "Chưa có bản dịch nào." : "Không tìm thấy kết quả.")
+                Text(store.entries.isEmpty ? L("history.empty") : L("history.noResults"))
                     .foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List(results) { entry in
@@ -81,10 +84,10 @@ private struct HistoryView: View {
         }
         .frame(minWidth: 420, minHeight: 320)
         // Alert sửa tiêu đề; để trống rồi Lưu = bỏ tiêu đề.
-        .alert("Đặt tiêu đề", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField("Tiêu đề gợi nhớ", text: $titleDraft)
-            Button("Lưu") { if let entry = renaming { try? store.rename(entry.id, title: titleDraft) } }
-            Button("Huỷ", role: .cancel) {}
+        .alert(L("history.setTitle"), isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField(L("history.titlePlaceholder"), text: $titleDraft)
+            Button(L("common.save")) { if let entry = renaming { try? store.rename(entry.id, title: titleDraft) } }
+            Button(L("common.cancel"), role: .cancel) {}
         }
     }
 }
@@ -117,9 +120,9 @@ private struct HistoryRow: View {
             }
             Spacer()
             Button(action: onRename) { Image(systemName: "pencil") }
-                .buttonStyle(.plain).foregroundStyle(.secondary).help("Đặt tiêu đề")
+                .buttonStyle(.plain).foregroundStyle(.secondary).help(L("history.setTitle"))
             Button(action: onDelete) { Image(systemName: "trash") }
-                .buttonStyle(.plain).foregroundStyle(.red).help("Xoá")
+                .buttonStyle(.plain).foregroundStyle(.red).help(L("common.delete"))
         }
         .padding(.vertical, 4)
     }

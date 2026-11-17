@@ -44,37 +44,42 @@ struct SettingsView: View {
     @State private var apiKey = Keychain.get("claudeAPIKey") ?? ""
     @State private var hasPermission = CGPreflightScreenCaptureAccess()
     @AppStorage(HistoryStore.enabledKey) private var saveHistory = true
+    // Đổi giá trị này làm SwiftUI vẽ lại toàn bộ form, nên mọi L(...) bên dưới cập nhật ngay.
+    @AppStorage(AppLanguage.key) private var appLanguage = "vi"
 
     private let languages = ["vi": "Tiếng Việt", "en": "English", "ja": "日本語", "zh-Hans": "简体中文", "ko": "한국어", "fr": "Français", "de": "Deutsch"]
 
     private var provider: String {
         switch engine {
         case "claude": "Anthropic"
-        case "custom": URL(string: customURL.trimmingCharacters(in: .whitespaces))?.host ?? "API custom"
+        case "custom": URL(string: customURL.trimmingCharacters(in: .whitespaces))?.host ?? L("settings.customAPI")
         default: "OpenAI"
         }
     }
 
     var body: some View {
         Form {
-            Section("Chung") {
-                KeyboardShortcuts.Recorder("Phím tắt chụp & dịch", name: .captureAndTranslate)
-                Picker("Dịch sang", selection: $targetLanguage) {
+            Section(L("settings.general")) {
+                Picker(L("settings.appLanguage"), selection: $appLanguage) {
+                    ForEach(AppLanguage.options, id: \.0) { Text($0.1).tag($0.0) }
+                }
+                KeyboardShortcuts.Recorder(L("settings.captureShortcut"), name: .captureAndTranslate)
+                Picker(L("settings.targetLanguage"), selection: $targetLanguage) {
                     ForEach(languages.sorted { $0.value < $1.value }, id: \.key) { Text($0.value).tag($0.key) }
                 }
-                TextField("Font chữ (để trống = font hệ thống)", text: $fontName)
+                TextField(L("settings.font"), text: $fontName)
             }
-            Section("Lịch sử") {
-                KeyboardShortcuts.Recorder("Phím tắt mở lịch sử", name: .showHistory)
-                Toggle("Lưu lịch sử dịch (tối đa \(HistoryStore.shared.limit) bản, chỉ lưu trên máy)", isOn: $saveHistory)
-                Button("Xoá tất cả lịch sử", role: .destructive) { HistoryStore.shared.deleteAll() }
+            Section(L("settings.history")) {
+                KeyboardShortcuts.Recorder(L("settings.historyShortcut"), name: .showHistory)
+                Toggle(L("settings.saveHistory", HistoryStore.shared.limit), isOn: $saveHistory)
+                Button(L("settings.deleteAllHistory"), role: .destructive) { HistoryStore.shared.deleteAll() }
             }
-            Section("Engine dịch") {
+            Section(L("settings.engine")) {
                 Picker("Engine", selection: $engine) {
                     Text("Apple Translation (offline)").tag("apple")
                     Text("Claude").tag("claude")
                     Text("OpenAI").tag("openai")
-                    Text("Custom (tương thích OpenAI)").tag("custom")
+                    Text(L("settings.engineCustom")).tag("custom")
                 }
                 if engine == "claude" {
                     SecureField("Claude API key", text: $apiKey)
@@ -85,7 +90,7 @@ struct SettingsView: View {
                     SecureField("OpenAI API key", text: $openAIKey)
                         .onChange(of: openAIKey) { _, value in Keychain.set("openAIAPIKey", value) }
                     TextField("Model", text: $openAIModel)
-                    TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $openAIReasoningEffort)
+                    TextField(L("settings.reasoningEffort"), text: $openAIReasoningEffort)
                 }
                 if engine == "custom" {
                     TextField(text: $customURL) {
@@ -93,34 +98,34 @@ struct SettingsView: View {
                             Text("Base URL")
                             Image(systemName: "questionmark.circle")
                                 .foregroundStyle(.secondary)
-                                .help("Base URL của API tương thích OpenAI, kết thúc bằng /v1. App tự thêm /chat/completions.\nVí dụ: https://sgp-linkto.betrend.com/openai-custom/v1")
+                                .help(L("settings.baseURLHelp", "https://<your-domain>/openai-custom/v1"))
                         }
                     }
                     SecureField("API key", text: $customKey)
                         .onChange(of: customKey) { _, value in Keychain.set("customAPIKey", value) }
                     TextField("Model", text: $customModel)
-                    TextField("Reasoning effort (để trống nếu model không hỗ trợ)", text: $customReasoningEffort)
+                    TextField(L("settings.reasoningEffort"), text: $customReasoningEffort)
                 }
                 if engine != "apple" {
-                    Label("Chữ nhận diện được trong vùng chụp sẽ được gửi tới máy chủ của \(provider). Tránh chụp vùng có mật khẩu, mã OTP hoặc dữ liệu nhạy cảm. Ảnh không được gửi đi.",
+                    Label(L("settings.privacyWarning", provider),
                           systemImage: "icloud.and.arrow.up")
                         .font(.callout)
                         .foregroundStyle(.orange)
                 }
             }
-            Section("Quyền") {
+            Section(L("settings.permissions")) {
                 LabeledContent("Screen Recording") {
                     if hasPermission {
-                        Label("Đã cấp", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                        Label(L("settings.granted"), systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                     } else {
-                        Button("Cấp quyền…") {
+                        Button(L("settings.grantAccess")) {
                             CGRequestScreenCaptureAccess()
                             hasPermission = CGPreflightScreenCaptureAccess()
                         }
                     }
                 }
                 // Luôn hiện: app ký ad-hoc nên mỗi bản build mới có thể mất quyền, cần vào System Settings xoá/bật lại.
-                Button("Mở System Settings → Screen Recording") {
+                Button(L("settings.openScreenRecording")) {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
                 }
             }

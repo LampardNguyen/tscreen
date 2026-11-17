@@ -15,11 +15,11 @@ struct OpenAITranslator: Translator {
 
     func translate(_ texts: [String], from source: Locale.Language?, to target: Locale.Language) async throws -> [String] {
         guard let key = Keychain.get(keychainKey), !key.isEmpty else {
-            throw TranslationError("Chưa nhập \(provider) API key trong Cài đặt.")
+            throw TranslationError(L("error.missingAPIKey", provider))
         }
         guard let url = URL(string: endpoint.trimmingCharacters(in: .whitespaces)),
               ["http", "https"].contains(url.scheme?.lowercased()), url.host != nil else {
-            throw TranslationError("API URL của \(provider) không hợp lệ.")
+            throw TranslationError(L("error.invalidAPIURL", provider))
         }
         var body: [String: Any] = [
             "model": model,

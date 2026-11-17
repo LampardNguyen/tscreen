@@ -4,7 +4,7 @@ import ScreenCaptureKit
 enum CaptureError: LocalizedError {
     case noPermission
     var errorDescription: String? {
-        "Chưa có quyền Screen Recording. Hãy bật TScreen trong System Settings → Privacy & Security → Screen & System Audio Recording rồi mở lại app."
+        L("error.noScreenRecording")
     }
 }
 

@@ -12,12 +12,13 @@ final class AppCoordinator {
     func showSettings() {
         if settingsWindow == nil {
             let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 460, height: 420), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = "Cài đặt TScreen"
             window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView())
             window.center()
             settingsWindow = window
         }
+        // Gán tiêu đề mỗi lần mở vì cửa sổ được dùng lại, ngôn ngữ giao diện có thể đã đổi.
+        settingsWindow?.title = L("settings.windowTitle")
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
     }
@@ -50,13 +51,13 @@ final class AppCoordinator {
             }
             do {
                 model.original = image
-                model.status = .working("Đang nhận diện chữ…")
+                model.status = .working(L("status.recognizing"))
                 viewer.show(model, near: region)
 
                 let blocks = try await TextRecognizer.recognize(image)
-                lap("OCR (\(blocks.count) khối)")
+                lap(L("timing.ocr", blocks.count))
                 guard !blocks.isEmpty else {
-                    model.status = .failed("Không tìm thấy chữ trong vùng đã chụp.")
+                    model.status = .failed(L("status.noText"))
                     return
                 }
                 let source = Self.detectLanguage(blocks.map(\.text).joined(separator: "\n"))
@@ -70,10 +71,10 @@ final class AppCoordinator {
                     model.errorDetail = nil
                     mark = clock.now
                     switch settings.engine {
-                    case "claude": model.status = .working("Đang gửi chữ tới Claude để dịch…")
-                    case "openai": model.status = .working("Đang gửi chữ tới OpenAI để dịch…")
-                    case "custom": model.status = .working("Đang gửi chữ tới API custom để dịch…")
-                    default: model.status = .working("Đang dịch trên máy…")
+                    case "claude": model.status = .working(L("status.sending", "Claude"))
+                    case "openai": model.status = .working(L("status.sending", "OpenAI"))
+                    case "custom": model.status = .working(L("status.sending", L("settings.customAPI")))
+                    default: model.status = .working(L("status.translatingOnDevice"))
                     }
                     let texts: [String]
                     do {
@@ -87,11 +88,11 @@ final class AppCoordinator {
                         }
                         return
                     }
-                    lap("Dịch (\(settings.engine))")
+                    lap(L("timing.translate", settings.engine))
                     let scale = CGFloat(image.width) / region.width
                     model.translated = ImageComposer.compose(image, blocks: blocks, translations: texts,
                                                              scale: scale, fontName: settings.fontName)
-                    lap("Vẽ")
+                    lap(L("timing.render"))
                     model.translatedText = texts.joined(separator: "\n")
                     model.status = .done
                     if HistoryStore.isEnabled, let translated = model.translated {

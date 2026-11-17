@@ -3,15 +3,15 @@ import Translation
 
 struct AppleTranslator: Translator {
     func translate(_ texts: [String], from source: Locale.Language?, to target: Locale.Language) async throws -> [String] {
-        guard let source else { throw TranslationError("Không nhận diện được ngôn ngữ nguồn.") }
+        guard let source else { throw TranslationError(L("error.unknownSourceLanguage")) }
         if source.languageCode == target.languageCode { return texts }
         switch await LanguageAvailability().status(from: source, to: target) {
         case .installed:
             break
         case .supported:
-            throw TranslationError("Chưa tải gói ngôn ngữ \(source.minimalIdentifier) → \(target.minimalIdentifier). Tải trong System Settings → General → Language & Region → Translation Languages.")
+            throw TranslationError(L("error.languagePackMissing", source.minimalIdentifier, target.minimalIdentifier))
         default:
-            throw TranslationError("Apple Translation không hỗ trợ cặp \(source.minimalIdentifier) → \(target.minimalIdentifier). Hãy chuyển sang Claude hoặc OpenAI trong Cài đặt.")
+            throw TranslationError(L("error.pairUnsupported", source.minimalIdentifier, target.minimalIdentifier))
         }
         let session = TranslationSession(installedSource: source, target: target)
         let requests = texts.enumerated().map { TranslationSession.Request(sourceText: $1, clientIdentifier: String($0)) }

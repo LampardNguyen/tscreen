@@ -6,7 +6,7 @@
 
 **Luồng xử lý**
 1. Menu "Cài đặt…" hoặc phím tắt toàn cục ⌃⇧, (`KeyboardShortcuts.Name.openSettings`, chưa có ô đổi phím) → `AppCoordinator.showSettings()` tự tạo `NSWindow` 460×420 chứa `SettingsView`.
-2. `SettingsView` dùng `@AppStorage`: `targetLanguage` (mặc định `vi`), `engine` (`apple`), `claudeModel`, `openAIModel`, `openAIReasoningEffort` (`minimal`), `customURL`, `customModel`, `customReasoningEffort` (rỗng), `fontName`, `saveHistory` (mặc định true, [[lich-su]]); có ô ghi phím tắt chụp & dịch và phím tắt mở lịch sử, nút "Xoá tất cả lịch sử", nút luôn hiện mở `x-apple.systempreferences:…?Privacy_ScreenCapture`, và dòng trạng thái quyền Screen Recording.
+2. `SettingsView` dùng `@AppStorage`: `appLanguage` (ngôn ngữ giao diện, mặc định `vi`, [[da-ngon-ngu]]), `targetLanguage` (mặc định `vi`), `engine` (`apple`), `claudeModel`, `openAIModel`, `openAIReasoningEffort` (`minimal`), `customURL`, `customModel`, `customReasoningEffort` (rỗng), `fontName`, `saveHistory` (mặc định true, [[lich-su]]); có ô ghi phím tắt chụp & dịch và phím tắt mở lịch sử, nút "Xoá tất cả lịch sử", nút luôn hiện mở `x-apple.systempreferences:…?Privacy_ScreenCapture`, và dòng trạng thái quyền Screen Recording.
 3. `AppSettings.current` đọc các giá trị này cho [[pipeline]].
 4. API key lưu ở Keychain (generic password, service `com.linh.tscreen`, khoá `claudeAPIKey`, `openAIAPIKey`, `customAPIKey`).
 
@@ -19,4 +19,4 @@
 - Không bao giờ log hay commit API key; `.env` đã nằm trong `.gitignore`.
 
 ## Liên quan
-[[pipeline]] · [[dich]] · [[chup-man-hinh]]
+[[pipeline]] · [[dich]] · [[chup-man-hinh]] · [[da-ngon-ngu]]

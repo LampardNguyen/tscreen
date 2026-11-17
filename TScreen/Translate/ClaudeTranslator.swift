@@ -5,7 +5,7 @@ struct ClaudeTranslator: Translator {
 
     func translate(_ texts: [String], from source: Locale.Language?, to target: Locale.Language) async throws -> [String] {
         guard let key = Keychain.get("claudeAPIKey"), !key.isEmpty else {
-            throw TranslationError("Chưa nhập Claude API key trong Cài đặt.")
+            throw TranslationError(L("error.missingAPIKey", "Claude"))
         }
         let system = LLMTranslation.systemPrompt(target: target)
         let input = try LLMTranslation.keyedInput(texts)

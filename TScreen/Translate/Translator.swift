@@ -53,8 +53,8 @@ enum LLMTranslation {
     /// Lỗi API: chỉ hiện mã trạng thái và thông báo của nhà cung cấp, không đổ nguyên phần thân phản hồi ra giao diện.
     static func apiError(_ provider: String, status: Int?, data: Data) -> TranslationError {
         struct Body: Decodable { struct Detail: Decodable { let message: String? }; let error: Detail }
-        let message = (try? JSONDecoder().decode(Body.self, from: data))?.error.message ?? "không rõ nguyên nhân"
-        return TranslationError("\(provider) API lỗi \(status.map(String.init) ?? "mạng"): \(message.prefix(200))")
+        let message = (try? JSONDecoder().decode(Body.self, from: data))?.error.message ?? L("error.unknownReason")
+        return TranslationError(L("error.api", provider, status.map(String.init) ?? L("error.network"), String(message.prefix(200))))
     }
 
     /// Đọc object `{id: bản dịch}` từ phản hồi, trả về mảng cùng thứ tự với `input`.
@@ -69,22 +69,22 @@ enum LLMTranslation {
             return TranslationError(message, detail: detail)
         }
         if truncated {
-            throw fail("Engine dịch bị cắt giữa chừng do vượt giới hạn token (\(count) khối).",
+            throw fail(L("error.truncated", count),
                        "API báo dừng vì hết token, JSON chưa hoàn chỉnh.")
         }
         guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end else {
-            throw fail("Engine dịch không trả về object JSON.", "Không tìm thấy cặp { } trong phản hồi.")
+            throw fail(L("error.noJSONObject"), "Không tìm thấy cặp { } trong phản hồi.")
         }
         let result: [String: String]
         do {
             result = try JSONDecoder().decode([String: String].self, from: Data(text[start...end].utf8))
         } catch {
-            throw fail("Engine dịch trả về JSON hỏng.", "Không decode được thành {id: chuỗi}: \(error)")
+            throw fail(L("error.badJSON"), "Không decode được thành {id: chuỗi}: \(error)")
         }
         let missing = (1...max(count, 1)).filter { result[String($0)] == nil }
         // Không khớp id nào = model trả sai cấu trúc hoàn toàn, coi là lỗi thay vì hiện toàn chữ gốc.
         guard missing.count < count else {
-            throw fail("Engine dịch trả về sai id: không khớp khối nào trong \(count) khối.",
+            throw fail(L("error.wrongIDs", count),
                        "Các id trả về: \(result.keys.sorted().joined(separator: ", "))")
         }
         // Thiếu vài id (thường do model gộp câu bị OCR cắt) thì giữ chữ gốc cho khối đó, không bỏ cả lô.

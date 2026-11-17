@@ -8,7 +8,7 @@ final class ViewerModel: ObservableObject {
     @Published var original: CGImage?
     @Published var translated: CGImage?
     @Published var translatedText = ""
-    @Published var status: Status = .working("Đang chụp…")
+    @Published var status: Status = .working(L("status.capturing"))
     @Published var showOriginal = false
     @Published var zoom: CGFloat = 1
     @Published var pinned = true
@@ -242,10 +242,10 @@ struct ViewerImageView: View {
             HStack(spacing: 8) {
                 Label(message, systemImage: "exclamationmark.triangle.fill").textSelection(.enabled)
                 if let detail = model.errorDetail {
-                    Button("Chi tiết") { ErrorDetailWindow.show(title: message, detail: detail) }
+                    Button(L("viewer.details")) { ErrorDetailWindow.show(title: message, detail: detail) }
                 }
                 if let retry = model.retry {
-                    Button("Thử lại", action: retry)
+                    Button(L("viewer.retry"), action: retry)
                 }
             }.modifier(Badge())
         case .done:
@@ -280,7 +280,7 @@ enum ErrorDetailWindow {
             w.center()
             return w
         }()
-        window.title = "Chi tiết lỗi"
+        window.title = L("errorDetail.windowTitle")
         window.contentView = NSHostingView(rootView: ErrorDetailView(title: title, detail: detail))
         Self.window = window
         NSApp.activate(ignoringOtherApps: true)
@@ -302,7 +302,7 @@ private struct ErrorDetailView: View {
             .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
             HStack {
                 Spacer()
-                Button("Sao chép") {
+                Button(L("errorDetail.copy")) {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(title + "\n\n" + detail, forType: .string)
                 }
@@ -331,22 +331,24 @@ private struct CornerMarks: Shape {
 
 struct ViewerToolbar: View {
     @ObservedObject var model: ViewerModel
+    // Theo dõi ngôn ngữ giao diện để tooltip của viewer đang mở đổi ngay khi đổi trong Cài đặt.
+    @AppStorage(AppLanguage.key) private var appLanguage = "vi"
     let controller: ViewerWindowController
 
     var body: some View {
         HStack(spacing: 14) {
-            button(model.showOriginal ? "Xem bản dịch (Space)" : "Xem ảnh gốc (Space)",
+            button(model.showOriginal ? L("viewer.showTranslation") : L("viewer.showOriginal"),
                    model.showOriginal ? "character.bubble" : "photo") { controller.toggleOriginal() }
                 .disabled(model.translated == nil)
             Divider().frame(height: 18)
-            button("Sao chép ảnh (⌘C)", "doc.on.doc") { controller.copyImage() }
-            button("Sao chép chữ dịch (⇧⌘C)", "text.quote") { controller.copyText() }
+            button(L("viewer.copyImage"), "doc.on.doc") { controller.copyImage() }
+            button(L("viewer.copyText"), "text.quote") { controller.copyText() }
                 .disabled(model.translatedText.isEmpty)
-            button("Lưu PNG (⌘S)", "square.and.arrow.down") { controller.save() }
-            button(model.pinned ? "Bỏ ghim" : "Ghim trên cùng", model.pinned ? "pin.fill" : "pin") { model.pinned.toggle() }
-            button("Thời gian xử lý từng bước", "stopwatch") { model.showTimings.toggle() }
+            button(L("viewer.savePNG"), "square.and.arrow.down") { controller.save() }
+            button(model.pinned ? L("viewer.unpin") : L("viewer.pin"), model.pinned ? "pin.fill" : "pin") { model.pinned.toggle() }
+            button(L("viewer.timings"), "stopwatch") { model.showTimings.toggle() }
             Divider().frame(height: 18)
-            button("Đóng (Esc) · ⌥-bấm: đóng tất cả", "xmark") {
+            button(L("viewer.close"), "xmark") {
                 NSEvent.modifierFlags.contains(.option) ? ViewerWindowController.closeAll() : controller.close()
             }.foregroundStyle(.red)
         }

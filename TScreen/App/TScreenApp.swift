@@ -10,6 +10,8 @@ extension KeyboardShortcuts.Name {
 @main
 struct TScreenApp: App {
     private let coordinator = AppCoordinator.shared
+    // Đọc ngôn ngữ giao diện để menu vẽ lại ngay khi đổi trong Cài đặt.
+    @AppStorage(AppLanguage.key) private var appLanguage = "vi"
 
     init() {
         KeyboardShortcuts.onKeyUp(for: .captureAndTranslate) {
@@ -25,11 +27,11 @@ struct TScreenApp: App {
 
     var body: some Scene {
         MenuBarExtra("TScreen", systemImage: "text.viewfinder") {
-            Button("Chụp & dịch") { coordinator.run() }
-            Button("Lịch sử…") { HistoryWindow.show() }
+            Button(L("menu.capture")) { coordinator.run() }
+            Button(L("menu.history")) { HistoryWindow.show() }
             Divider()
-            Button("Cài đặt…") { coordinator.showSettings() }.keyboardShortcut(",", modifiers: [.control, .shift])
-            Button("Thoát") { NSApp.terminate(nil) }.keyboardShortcut("q")
+            Button(L("menu.settings")) { coordinator.showSettings() }.keyboardShortcut(",", modifiers: [.control, .shift])
+            Button(L("menu.quit")) { NSApp.terminate(nil) }.keyboardShortcut("q")
         }
     }
 }

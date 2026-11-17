@@ -12,6 +12,8 @@ struct HistoryEntry: Codable, Identifiable, Equatable {
     /// Kích thước vùng chụp (point) để mở lại viewer đúng cỡ ban đầu.
     let width: Double
     let height: Double
+    /// Tiêu đề người dùng tự đặt để gợi nhớ; optional để `meta.json` cũ (chưa có khoá này) vẫn decode được.
+    var title: String?
 }
 
 /// Lịch sử dịch lưu dạng file: `<directory>/<uuid>/{translated.png, thumb.jpg, meta.json}`.
@@ -76,6 +78,17 @@ final class HistoryStore: ObservableObject {
         entries.removeAll { $0.id == id }
     }
 
+    /// Đổi tiêu đề rồi ghi lại `meta.json`; chuỗi rỗng/toàn khoảng trắng = bỏ tiêu đề.
+    func rename(_ id: UUID, title: String) throws {
+        guard let index = entries.firstIndex(where: { $0.id == id }) else { return }
+        var entry = entries[index]
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        entry.title = trimmed.isEmpty ? nil : trimmed
+        // Ghi đĩa trước, thành công mới cập nhật danh sách để UI không lệch với file.
+        try JSONEncoder().encode(entry).write(to: folder(id).appendingPathComponent("meta.json"))
+        entries[index] = entry
+    }
+
     func deleteAll() {
         try? FileManager.default.removeItem(at: directory)
         entries = []
@@ -85,12 +98,14 @@ final class HistoryStore: ObservableObject {
         CGImageSourceCreateWithURL(imageURL(id) as CFURL, nil).flatMap { CGImageSourceCreateImageAtIndex($0, 0, nil) }
     }
 
-    /// Lọc theo chữ gốc hoặc chữ dịch, không phân biệt hoa thường và dấu; chuỗi rỗng = tất cả.
+    /// Lọc theo tiêu đề, chữ gốc hoặc chữ dịch, không phân biệt hoa thường và dấu; chuỗi rỗng = tất cả.
     static func filter(_ entries: [HistoryEntry], query: String) -> [HistoryEntry] {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return entries }
         let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
-        return entries.filter { $0.translatedText.range(of: query, options: options) != nil || $0.sourceText.range(of: query, options: options) != nil }
+        return entries.filter { entry in
+            [entry.title ?? "", entry.translatedText, entry.sourceText].contains { $0.range(of: query, options: options) != nil }
+        }
     }
 
     private static func write(_ image: CGImage, to url: URL, type: UTType) throws {

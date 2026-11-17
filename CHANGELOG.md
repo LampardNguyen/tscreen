@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-17
+
+- Lịch sử: thêm nút bút chì ở mỗi dòng để đặt/sửa tiêu đề gợi nhớ (lưu trong `meta.json`, để trống = bỏ tiêu đề); ô tìm kiếm khớp cả tiêu đề.
+
 ## 2026-11-16
 
 - Phím tắt mở Cài đặt đổi từ ⌘, (chỉ khi menu đang mở) thành phím tắt toàn cục ⌃⇧, (`KeyboardShortcuts.Name.openSettings`); menu hiển thị đúng phím mới.

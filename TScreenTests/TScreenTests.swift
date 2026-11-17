@@ -110,6 +110,13 @@ final class TScreenTests: XCTestCase {
         XCTAssertEqual(HistoryStore.filter(store.entries, query: "決済").map(\.id), [first])
         XCTAssertEqual(HistoryStore.filter(store.entries, query: " ").count, 2)
 
+        // Đặt tiêu đề: lưu xuống đĩa, tìm được theo tiêu đề; chuỗi trắng = bỏ tiêu đề.
+        try store.rename(first, title: "  Hoá đơn tháng 11 ")
+        XCTAssertEqual(HistoryStore(directory: dir).entries.first { $0.id == first }?.title, "Hoá đơn tháng 11")
+        XCTAssertEqual(HistoryStore.filter(store.entries, query: "thang 11").map(\.id), [first])
+        try store.rename(first, title: "   ")
+        XCTAssertNil(store.entries.first { $0.id == first }?.title)
+
         try store.add(image: image, size: .zero, engine: "apple", sourceText: "", translatedText: "Mới")
         XCTAssertEqual(store.entries.map(\.translatedText), ["Mới", "Xin chào"])
         XCTAssertFalse(FileManager.default.fileExists(atPath: store.folder(first).path))

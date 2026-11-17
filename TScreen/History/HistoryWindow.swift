@@ -42,6 +42,9 @@ private struct HistoryView: View {
     @ObservedObject var store: HistoryStore
     @State private var query = ""
     @State private var confirmDeleteAll = false
+    /// Bản ghi đang sửa tiêu đề (nil = không hiện alert) và nội dung ô nhập.
+    @State private var renaming: HistoryEntry?
+    @State private var titleDraft = ""
 
     private var results: [HistoryEntry] { HistoryStore.filter(store.entries, query: query) }
 
@@ -49,7 +52,7 @@ private struct HistoryView: View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Tìm trong chữ gốc hoặc chữ dịch", text: $query).textFieldStyle(.plain)
+                TextField("Tìm trong tiêu đề, chữ gốc hoặc chữ dịch", text: $query).textFieldStyle(.plain)
                 if !query.isEmpty {
                     Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain).foregroundStyle(.secondary)
                 }
@@ -67,7 +70,9 @@ private struct HistoryView: View {
                     .foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List(results) { entry in
-                    HistoryRow(entry: entry, thumbnail: store.thumbnailURL(entry.id)) { store.delete(entry.id) }
+                    HistoryRow(entry: entry, thumbnail: store.thumbnailURL(entry.id),
+                               onRename: { titleDraft = entry.title ?? ""; renaming = entry },
+                               onDelete: { store.delete(entry.id) })
                         .contentShape(Rectangle())
                         .pointerStyle(.link)
                         .onTapGesture { HistoryWindow.open(entry, store: store) }
@@ -75,12 +80,19 @@ private struct HistoryView: View {
             }
         }
         .frame(minWidth: 420, minHeight: 320)
+        // Alert sửa tiêu đề; để trống rồi Lưu = bỏ tiêu đề.
+        .alert("Đặt tiêu đề", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField("Tiêu đề gợi nhớ", text: $titleDraft)
+            Button("Lưu") { if let entry = renaming { try? store.rename(entry.id, title: titleDraft) } }
+            Button("Huỷ", role: .cancel) {}
+        }
     }
 }
 
 private struct HistoryRow: View {
     let entry: HistoryEntry
     let thumbnail: URL
+    let onRename: () -> Void
     let onDelete: () -> Void
 
     var body: some View {
@@ -95,11 +107,17 @@ private struct HistoryRow: View {
             .frame(width: 96, height: 64)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
             VStack(alignment: .leading, spacing: 4) {
-                Text(entry.translatedText).lineLimit(2)
+                // Có tiêu đề thì hiện đậm ở trên, chữ dịch rút còn 1 dòng để chiều cao dòng không đổi.
+                if let title = entry.title {
+                    Text(title).fontWeight(.semibold).lineLimit(1)
+                }
+                Text(entry.translatedText).lineLimit(entry.title == nil ? 2 : 1)
                 Text("\(entry.date.formatted(date: .abbreviated, time: .shortened)) · \(entry.engine)")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
+            Button(action: onRename) { Image(systemName: "pencil") }
+                .buttonStyle(.plain).foregroundStyle(.secondary).help("Đặt tiêu đề")
             Button(action: onDelete) { Image(systemName: "trash") }
                 .buttonStyle(.plain).foregroundStyle(.red).help("Xoá")
         }

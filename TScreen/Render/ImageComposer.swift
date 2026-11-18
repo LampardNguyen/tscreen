@@ -14,6 +14,8 @@ enum ImageComposer {
 
         let pad = 2 * scale
         for (block, text) in zip(blocks, translations) {
+            // Bản dịch giống chữ gốc thì giữ nguyên ảnh, tránh vẽ lại làm xấu chữ.
+            if normalized(text) == normalized(block.text) { continue }
             let background = bitmap.backgroundColor(in: block.rect.insetBy(dx: -pad, dy: -pad))
             let color = bitmap.textColor(in: block.rect, background: background)
 
@@ -36,5 +38,10 @@ enum ImageComposer {
             CTFrameDraw(CTFramesetterCreateFrame(setter, CFRange(), CGPath(rect: flipped, transform: nil), nil), ctx)
         }
         return ctx.makeImage() ?? image
+    }
+
+    /// Gộp khoảng trắng, bỏ khoảng trắng đầu/cuối, không phân biệt hoa/thường.
+    static func normalized(_ s: String) -> String {
+        s.split(whereSeparator: \.isWhitespace).joined(separator: " ").lowercased()
     }
 }

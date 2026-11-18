@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-18
+
+- Vẽ ảnh: khối có bản dịch giống chữ gốc (bỏ qua khoảng trắng thừa, không phân biệt hoa/thường) giữ nguyên ảnh gốc, không tô nền/vẽ lại, tránh vỡ chữ. Test `testComposeSkipsUnchangedBlocks`.
+
 ## 2026-11-17
 
 - Đa ngôn ngữ giao diện Việt / Anh / Nhật (mặc định Tiếng Việt): chọn ở Cài đặt → Chung → "Ngôn ngữ giao diện" (`appLanguage`), đổi là áp dụng ngay không cần mở lại app. Chuỗi giao diện lưu theo khoá (vd. `menu.capture`), mỗi ngôn ngữ một file `TScreen/Resources/i18n/{vi,en,ja}.json`; test `testLocalizationKeysComplete` báo lỗi khi code dùng khoá không có trong file, các file lệch khoá hoặc lệch tham số `%@`/`%d`.

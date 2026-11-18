@@ -176,6 +176,24 @@ final class TScreenTests: XCTestCase {
         }
     }
 
+    /// Khối có bản dịch giống chữ gốc (bỏ qua khoảng trắng, hoa/thường) không bị vẽ lại.
+    func testComposeSkipsUnchangedBlocks() {
+        let w = 200, h = 100
+        let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0,
+                            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        ctx.setFillColor(CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: w, height: h))
+        ctx.setFillColor(CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1))
+        ctx.fill(CGRect(x: 40, y: 40, width: 120, height: 20))
+        let image = ctx.makeImage()!
+        let block = TextBlock(text: "Hello  World", rect: CGRect(x: 30, y: 30, width: 140, height: 40), lineHeight: 40)
+
+        let same = ImageComposer.compose(image, blocks: [block], translations: [" hello world "], scale: 1, fontName: "")
+        XCTAssertEqual(same.dataProvider?.data as Data?, image.dataProvider?.data as Data?)
+        let changed = ImageComposer.compose(image, blocks: [block], translations: ["Xin chào"], scale: 1, fontName: "")
+        XCTAssertNotEqual(changed.dataProvider?.data as Data?, image.dataProvider?.data as Data?)
+    }
+
     /// Bắt lỗi gõ sai/xoá nhầm khoá: mọi `L("khoá")` trong source phải có ở mọi file ngôn ngữ,
     /// các file có cùng tập khoá và cùng tham số định dạng (sai tham số làm `String(format:)` crash).
     func testLocalizationKeysComplete() throws {

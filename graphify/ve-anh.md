@@ -5,6 +5,7 @@
 **File chính:** `TScreen/Render/ImageComposer.swift`, `TScreen/Render/ColorSampler.swift`, `TScreen/Render/TextFitter.swift`
 
 **Luồng xử lý** (`ImageComposer.compose`, cho từng khối)
+0. Bản dịch giống chữ gốc sau `ImageComposer.normalized` (gộp khoảng trắng, chữ thường) → bỏ qua khối, giữ nguyên ảnh.
 1. `Bitmap.backgroundColor(in:)` — trung vị các pixel trên viền khung.
 2. `Bitmap.textColor(in:background:)` — trung bình các pixel cách màu nền hơn 0.6·khoảng cách lớn nhất; nếu khoảng cách lớn nhất ≤ 60 thì dùng đen/trắng.
 3. Tô hình chữ nhật bo góc (có nới lề) bằng màu nền.

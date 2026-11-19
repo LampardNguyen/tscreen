@@ -198,15 +198,17 @@ final class TScreenTests: XCTestCase {
     /// các file có cùng tập khoá và cùng tham số định dạng (sai tham số làm `String(format:)` crash).
     func testLocalizationKeysComplete() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let source = root.appendingPathComponent("TScreen")
+        let source = root.appendingPathComponent("Shared")
         var used = Set<String>()
         let regex = try NSRegularExpression(pattern: #"\bL\("([A-Za-z0-9_.]+)""#)
-        for case let url as URL in FileManager.default.enumerator(at: source, includingPropertiesForKeys: nil)!
+        for dir in ["TScreen", "Shared", "TScreen-iOS"] {
+        for case let url as URL in FileManager.default.enumerator(at: root.appendingPathComponent(dir), includingPropertiesForKeys: nil)!
         where url.pathExtension == "swift" {
             let text = try String(contentsOf: url, encoding: .utf8)
             for m in regex.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
                 used.insert(String(text[Range(m.range(at: 1), in: text)!]))
             }
+        }
         }
         XCTAssertFalse(used.isEmpty)
         // App thực sự nạp được JSON từ bundle (file đã được copy vào Resources).

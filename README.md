@@ -83,9 +83,9 @@ hotkey → region overlay → ScreenCaptureKit → Vision OCR → language detec
 |---|---|
 | `TScreen/App` | Menu bar app and the pipeline coordinator |
 | `TScreen/Capture` | Region selection overlay and screen capture |
-| `TScreen/OCR` | Vision document recognition into text blocks |
-| `TScreen/Translate` | `Translator` protocol and the three engines |
-| `TScreen/Render` | Colour sampling, text fitting, image composition |
+| `Shared/OCR` | Vision document recognition into text blocks |
+| `Shared/Translate` | `Translator` protocol and the three engines |
+| `Shared/Render` | Colour sampling, text fitting, image composition |
 | `TScreen/Viewer` | Borderless viewer window and floating toolbar |
 | `TScreen/Settings` | Settings window and Keychain helper |
 | `TScreenTests` | Unit tests |
@@ -116,3 +116,19 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code 
 ## License
 
 [MIT](LICENSE)
+
+## iOS (branch `ios`)
+
+iOS does not allow third-party floating buttons over other apps, so the iOS app exposes an App Intent
+**"Dịch bằng TScreen"** (image in → translated image out). Build a Shortcut
+`Take Screenshot → Dịch bằng TScreen → Quick Look` and assign it to AssistiveTouch (Single-Tap), Back Tap
+or the Action button. The app itself only has a Guide tab and a Settings tab; there is no history on iOS.
+
+```bash
+xcodegen generate
+xcodebuild -scheme TScreen-iOS -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3' -derivedDataPath build build
+```
+
+Deployment target iOS 26.0. To install on a real iPhone, create `TScreen-iOS/Signing.local.xcconfig`
+(git-ignored) with `DEVELOPMENT_TEAM`, `CODE_SIGN_STYLE = Automatic`, `CODE_SIGN_IDENTITY = Apple Development`,
+and enable Developer Mode on the device.

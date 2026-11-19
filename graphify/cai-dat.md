@@ -2,7 +2,7 @@
 
 **Mục đích:** lưu và chỉnh các tuỳ chọn của app.
 
-**File chính:** `TScreen/Settings/SettingsView.swift`, `TScreen/Settings/Keychain.swift`, `AppCoordinator.showSettings()`
+**File chính:** `TScreen/Settings/SettingsView.swift` (form macOS), `Shared/Settings/AppSettings.swift` (`AppSettings.current`), `Shared/Settings/Keychain.swift`; form iOS `SettingsForm` trong `TScreen-iOS/TScreenIOSApp.swift`, `AppCoordinator.showSettings()`
 
 **Luồng xử lý**
 1. Menu "Cài đặt…" hoặc phím tắt toàn cục ⌃⇧, (`KeyboardShortcuts.Name.openSettings`, chưa có ô đổi phím) → `AppCoordinator.showSettings()` tự tạo `NSWindow` 460×420 chứa `SettingsView`.

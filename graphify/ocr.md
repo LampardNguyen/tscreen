@@ -2,7 +2,7 @@
 
 **Mục đích:** nhận diện chữ trong ảnh và gom thành các khối (đoạn văn) kèm vị trí.
 
-**File chính:** `TScreen/OCR/TextRecognizer.swift`, `TScreen/OCR/TextBlock.swift`
+**File chính:** `Shared/OCR/TextRecognizer.swift`, `Shared/OCR/TextBlock.swift` (dùng chung macOS/iOS, xem [[ios]])
 
 **Luồng xử lý**
 1. `TextRecognizer.recognize` chạy `RecognizeDocumentsRequest` (macOS 26) với ngôn ngữ `ja-JP`, `en-US`.

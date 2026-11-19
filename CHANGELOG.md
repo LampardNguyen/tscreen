@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## 2026-11-19
+
+- Thêm bản iOS (branch `ios`): target `TScreen-iOS` (iOS 26.0+), App Intent "Dịch bằng TScreen" nhận ảnh chụp màn hình và trả ảnh đã dịch, dùng với Phím tắt + AssistiveTouch; app có tab Hướng dẫn và Cài đặt, không có lịch sử.
+- Tách code dùng chung sang `Shared/` (OCR, Translate, Render, `AppSettings`, Keychain, L10n, i18n, `detectLanguage`); test i18n quét cả `Shared` và `TScreen-iOS`.
+- iOS: viết lại màn hình Hướng dẫn chi tiết từng bước (tạo phím tắt trong app Phím tắt, gán AssistiveTouch, cài đặt dịch, Chạm vào mặt sau/nút Tác vụ, xử lý sự cố) cho vi/en/ja.
+- iOS: intent "Dịch bằng TScreen" có `parameterSummary` để Phím tắt tự nối ảnh chụp màn hình từ bước trước (trước đó ô Ảnh chỉ mở trình chọn tệp); cập nhật bước 6 hướng dẫn.
+
 ## 2026-11-18
 
 - Vẽ ảnh: khối có bản dịch giống chữ gốc (bỏ qua khoảng trắng thừa, không phân biệt hoa/thường) giữ nguyên ảnh gốc, không tô nền/vẽ lại, tránh vỡ chữ. Test `testComposeSkipsUnchangedBlocks`.

@@ -2,7 +2,7 @@
 
 **Mục đích:** xoá chữ gốc và vẽ chữ dịch vào đúng vị trí trên ảnh.
 
-**File chính:** `TScreen/Render/ImageComposer.swift`, `TScreen/Render/ColorSampler.swift`, `TScreen/Render/TextFitter.swift`
+**File chính:** `Shared/Render/ImageComposer.swift`, `Shared/Render/ColorSampler.swift`, `Shared/Render/TextFitter.swift`
 
 **Luồng xử lý** (`ImageComposer.compose`, cho từng khối)
 0. Bản dịch giống chữ gốc sau `ImageComposer.normalized` (gộp khoảng trắng, chữ thường) → bỏ qua khối, giữ nguyên ảnh.

@@ -1,0 +1,6 @@
+// Mặc định: ký ad-hoc (đủ cho simulator).
+// Cài lên iPhone thật: tạo TScreen-iOS/Signing.local.xcconfig (không commit) với nội dung:
+//   DEVELOPMENT_TEAM = <team id của bạn>
+//   CODE_SIGN_STYLE = Automatic
+//   CODE_SIGN_IDENTITY = Apple Development
+#include? "Signing.local.xcconfig"

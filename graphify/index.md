@@ -13,4 +13,5 @@ App menu bar macOS: nhấn phím tắt → chọn vùng màn hình → chụp �
 - [[lich-su]] — lưu ảnh đã dịch + chữ, cửa sổ tìm kiếm/xoá/mở lại, phím tắt ⌃⇧H
 - [[cai-dat]] — Settings, UserDefaults, Keychain
 - [[da-ngon-ngu]] — ngôn ngữ giao diện Việt/Anh/Nhật, hàm `L("khoá")`, file `i18n/*.json`
+- [[ios]] — bản iOS (branch `ios`): App Intent dịch ảnh chụp màn hình qua Phím tắt + AssistiveTouch
 - [[build-va-test]] — XcodeGen, lệnh build/test, ký app

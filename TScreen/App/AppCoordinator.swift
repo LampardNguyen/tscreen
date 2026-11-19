@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import NaturalLanguage
 
 /// Chạy pipeline: chọn vùng → chụp → OCR → nhận diện ngôn ngữ → dịch → vẽ → viewer.
 @MainActor
@@ -60,7 +59,7 @@ final class AppCoordinator {
                     model.status = .failed(L("status.noText"))
                     return
                 }
-                let source = Self.detectLanguage(blocks.map(\.text).joined(separator: "\n"))
+                let source = detectLanguage(blocks.map(\.text).joined(separator: "\n"))
                 // Id bản ghi lịch sử của lần chụp này; "Thử lại" thành công thì thay bản cũ thay vì thêm bản mới.
                 var historyID: UUID?
 
@@ -116,9 +115,5 @@ final class AppCoordinator {
                 if model.original == nil { viewer.show(model, near: region) }
             }
         }
-    }
-
-    static func detectLanguage(_ text: String) -> Locale.Language? {
-        NLLanguageRecognizer.dominantLanguage(for: text).map { Locale.Language(identifier: $0.rawValue) }
     }
 }

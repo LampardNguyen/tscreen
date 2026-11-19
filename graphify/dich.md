@@ -2,7 +2,7 @@
 
 **Mục đích:** dịch danh sách chuỗi sang ngôn ngữ đích, giữ nguyên số lượng và thứ tự.
 
-**File chính:** `TScreen/Translate/Translator.swift`, `AppleTranslator.swift`, `ClaudeTranslator.swift`, `OpenAITranslator.swift` (cùng thư mục)
+**File chính:** `Shared/Translate/Translator.swift`, `AppleTranslator.swift`, `ClaudeTranslator.swift`, `OpenAITranslator.swift` (cùng thư mục)
 
 **Luồng xử lý**
 1. `makeTranslator(settings)` chọn theo `engine`: `"claude"`, `"openai"`, `"custom"`, còn lại là Apple.

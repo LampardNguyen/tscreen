@@ -2,7 +2,7 @@
 
 **Mục đích:** hiển thị giao diện app bằng Tiếng Việt (mặc định), English hoặc 日本語. Khác với `targetLanguage` là ngôn ngữ đích khi dịch ([[dich]]).
 
-**File chính:** `TScreen/App/L10n.swift`, `TScreen/Resources/i18n/vi.json` · `en.json` · `ja.json`, test `testLocalizationKeysComplete`
+**File chính:** `Shared/App/L10n.swift`, `Shared/Resources/i18n/vi.json` · `en.json` · `ja.json`, test `testLocalizationKeysComplete`
 
 **Luồng xử lý**
 1. Cài đặt → Chung → "Ngôn ngữ giao diện" ghi UserDefaults `appLanguage` (`vi`/`en`/`ja`, `AppLanguage.options`).

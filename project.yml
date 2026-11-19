@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.linh
   deploymentTarget:
     macOS: "26.0"
+    iOS: "26.0"
 packages:
   KeyboardShortcuts:
     url: https://github.com/sindresorhus/KeyboardShortcuts
@@ -16,7 +17,7 @@ targets:
   TScreen:
     type: application
     platform: macOS
-    sources: [TScreen]
+    sources: [TScreen, Shared]
     dependencies:
       - package: KeyboardShortcuts
     info:
@@ -34,6 +35,25 @@ targets:
       configs:
         Release:
           ENABLE_HARDENED_RUNTIME: YES # chặn chèn dylib/debug vào app đang giữ quyền Screen Recording
+  TScreen-iOS:
+    type: application
+    platform: iOS
+    sources: [TScreen-iOS, Shared]
+    configFiles:
+      Debug: TScreen-iOS/Signing.xcconfig
+      Release: TScreen-iOS/Signing.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.linh.tscreen.ios
+        PRODUCT_NAME: TScreen
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: TScreen
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   TScreenTests:
     type: bundle.unit-test
     platform: macOS
@@ -51,3 +71,7 @@ schemes:
         TScreenTests: [test]
     test:
       targets: [TScreenTests]
+  TScreen-iOS:
+    build:
+      targets:
+        TScreen-iOS: all

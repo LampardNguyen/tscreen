@@ -6,3 +6,4 @@ DerivedData/
 xcuserdata/
 .env
 .env.*
+TScreen-iOS/Signing.local.xcconfig
